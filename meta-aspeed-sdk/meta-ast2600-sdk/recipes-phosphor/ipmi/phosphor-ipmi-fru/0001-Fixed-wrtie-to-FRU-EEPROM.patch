@@ -1,0 +1,147 @@
+From 04583f7093fb5ccf196e37dda441074d1e37af30 Mon Sep 17 00:00:00 2001
+From: Vincent Lai <Vincent.Lai@advantech.com.tw>
+Date: Mon, 9 Dec 2024 14:53:29 +0800
+Subject: [PATCH] Fixed wrtie to FRU EEPROM.
+
+---
+ strgfnhandler.cpp | 114 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 113 insertions(+), 1 deletion(-)
+
+diff --git a/strgfnhandler.cpp b/strgfnhandler.cpp
+index 81c5ee4..4b36c42 100644
+--- a/strgfnhandler.cpp
++++ b/strgfnhandler.cpp
+@@ -9,12 +9,81 @@
+ #include <cstdio>
+ #include <cstring>
+ 
++#include <fcntl.h>       // For O_RDWR
++#include <sys/ioctl.h>   // For ioctl
++#include <linux/i2c-dev.h> // For I2C_SLAVE
++#include <iostream>
++
+ void register_netfn_storage_write_fru() __attribute__((constructor));
+ 
+ sd_bus* ipmid_get_sd_bus_connection(void);
+ 
+ using namespace phosphor::logging;
+ 
++
++
++int writeToEEPROM(const char* filename, uint8_t i2cBus, uint8_t i2cAddr) {
++    uint8_t dataBuffer[32]; // Data buffer (max size for EEPROM page write)
++    size_t bytesRead;
++
++    // Construct the sysfs path to the EEPROM
++    char sysfsPath[50];
++    std::sprintf(sysfsPath, "/sys/class/i2c-dev/i2c-1/device/%d-00%02x/eeprom", i2cBus, i2cAddr);
++
++    // Open the sysfs EEPROM file for writing
++    int eepromFd = open(sysfsPath, O_WRONLY);
++    if (eepromFd < 0) {
++        perror("Failed to open EEPROM sysfs file");
++        return -1;
++    }
++
++    // Open the input file
++    FILE* fruFile = std::fopen(filename, "rb");
++    if (!fruFile) {
++        perror("Failed to open file");
++        close(eepromFd);
++        return -1;
++    }
++
++    uint16_t address = 0; // Starting EEPROM address
++    while ((bytesRead = std::fread(dataBuffer, 1, sizeof(dataBuffer), fruFile)) > 0) {
++        // Seek to the desired EEPROM address
++        if (lseek(eepromFd, address, SEEK_SET) < 0) {
++            perror("Failed to seek in EEPROM sysfs file");
++            close(eepromFd);
++            std::fclose(fruFile);
++            return -1;
++        }
++
++        // Write data to EEPROM
++        if (write(eepromFd, dataBuffer, bytesRead) != (ssize_t)bytesRead) {
++            perror("Failed to write to EEPROM");
++            close(eepromFd);
++            std::fclose(fruFile);
++            return -1;
++        }
++
++        // Increment the address for the next block
++        address += bytesRead;
++
++        // Delay to allow EEPROM to complete the write operation
++        usleep(5000); // 5ms delay (adjust as per EEPROM specs)
++    }
++
++    if (std::ferror(fruFile)) {
++        perror("Error reading file");
++        close(eepromFd);
++        std::fclose(fruFile);
++        return -1;
++    }
++
++    // Clean up resources
++    close(eepromFd);
++    std::fclose(fruFile);
++
++    return 0;
++}
++
+ ///-------------------------------------------------------
+ // Called by IPMI netfn router for write fru data command
+ //--------------------------------------------------------
+@@ -104,7 +173,50 @@ ipmi_ret_t ipmiStorageWriteFruData(ipmi_netfn_t /*netfn*/, ipmi_cmd_t /*cmd*/,
+     // FRU file to the inventory controller on DBus for the correct number
+     sdbusplus::bus_t bus{bus_type};
+     bool bmcOnlyFru = false;
+-    validateFRUArea(reqptr->frunum, fruFilename, bus, bmcOnlyFru);
++    //validateFRUArea(reqptr->frunum, fruFilename, bus, bmcOnlyFru);
++		if (validateFRUArea(reqptr->frunum, fruFilename, bus, bmcOnlyFru) == IPMI_CC_OK)
++		{
++		    fprintf(stderr, "Validation succeeded. Writing to EEPROM.\n");
++		    int rc = writeToEEPROM(fruFilename, 0x01, 0x56);
++		    if (rc < 0)
++		    {
++		        fprintf(stderr, "Failed to write FRU data to EEPROM.\n");
++		        return rc;
++		    }
++		}
++		else
++		{
++		    fprintf(stderr, "FRU validation failed. Not writing to EEPROM.\n");
++		    return rc;
++		}
++		
++    try
++    {
++        // Call the ReScan method on the FRU Device Manager
++        const char* fruService = "xyz.openbmc_project.FruDevice";
++        const char* fruPath = "/xyz/openbmc_project/FruDevice";
++        const char* fruInterface = "xyz.openbmc_project.FruDeviceManager";
++
++        auto rescanMethod = bus.new_method_call(fruService, fruPath, fruInterface, "ReScan");
++
++        auto rescanReply = bus.call(rescanMethod);
++
++        if (rescanReply.is_method_error())
++        {
++            fprintf(stderr, "Error: Failed to call ReScan method.\n");
++            return 1;
++        }
++
++        std::cout << "ReScan method called successfully.\n";
++        	
++        std::this_thread::sleep_for(std::chrono::seconds(2));
++    }
++    catch (const std::exception& e)
++    {
++        fprintf(stderr, "Error: %s.\n",e.what());
++        return 1;
++    }
++
+ 
+     return rc;
+ }

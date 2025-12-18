@@ -1,0 +1,66 @@
+[
+    {
+        "Exposes": [
+            {
+                "Address": "0x59",
+                "Bus": 4,
+                "Labels": [
+                "iin",
+                "iout1",
+                "vin",
+                "vout1",
+                "pin",
+                "temp1",
+                "fan1"
+            	],
+                "Thresholds": [
+                {
+                    "Direction": "greater than",
+                    "Label": "iin",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 50.0
+                },
+                {
+                    "Direction": "greater than",
+                    "Label": "iout1",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 280.0
+                },
+                {
+                    "Direction": "greater than",
+                    "Label": "vin",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 280.0
+                },
+                {
+                    "Direction": "greater than",
+                    "Label": "vout1",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 14.0
+                },
+                {
+                    "Direction": "greater than",
+                    "Label": "temp1",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 125
+                }
+                ],
+		"Name": "PSU1",
+                "iin_Name" : "PSU1_In Current",
+                "iout1_Name" : "PSU1_Out Current",
+                "vin_Name" : "PSU1_Vol In",
+                "vout1_Name" : "PSU1_Vol Out",
+		"PowerState": "On",
+                "Type": "pmbus"
+            }
+        ],
+        "Name": "Advantech PowerSupply",
+        "Probe": "TRUE",
+        "Type": "PowerSupply"
+    }
+]

@@ -1,0 +1,45 @@
+From a695ce6e9f96f73a791fe10bd001f941bc5d2ff9 Mon Sep 17 00:00:00 2001
+From: Vincent Lai <Vincent.Lai@advantech.com.tw>
+Date: Fri, 17 Oct 2025 15:01:46 +0800
+Subject: [PATCH] Fixed bootoverride to none with one time only.
+
+---
+ redfish-core/lib/systems.hpp | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
+ mode change 100644 => 100755 redfish-core/lib/systems.hpp
+
+diff --git a/redfish-core/lib/systems.hpp b/redfish-core/lib/systems.hpp
+old mode 100644
+new mode 100755
+index 9b5e5d2d..5f26554c
+--- a/redfish-core/lib/systems.hpp
++++ b/redfish-core/lib/systems.hpp
+@@ -1605,7 +1605,7 @@ inline void setBootEnable(const std::shared_ptr<bmcweb::AsyncResp>& asyncResp,
+     BMCWEB_LOG_DEBUG("Boot enable: {}", *bootEnable);
+ 
+     bool bootOverrideEnable = true; //iDesign#4095167
+-    bool bootOverridePersistent = false;
++    bool bootOverridePersistent = true;  //iDesign#4095167
+     // Figure out which DBUS interface and property to use
+     if (*bootEnable == "Disabled")
+     {
+@@ -1640,11 +1640,6 @@ inline void setBootEnable(const std::shared_ptr<bmcweb::AsyncResp>& asyncResp,
+                     "xyz.openbmc_project.Object.Enable", "Enabled",
+                     "Boot/BootSourceOverrideEnabled", bootOverrideEnable);
+ 
+-    if (!bootOverrideEnable)
+-    {
+-        return;
+-    }
+-
+     // In case boot override is enabled we need to set correct value for the
+     // 'one_time' enable DBus interface
+     BMCWEB_LOG_DEBUG("DBUS boot override persistent: {}",
+@@ -1705,6 +1700,7 @@ inline void
+                         "/xyz/openbmc_project/control/host0/boot"),
+                     "xyz.openbmc_project.Control.Boot.Mode", "BootMode",
+                     "Boot/BootSourceOverrideTarget", bootModeStr);
++                    
+ }
+ 
+ /**

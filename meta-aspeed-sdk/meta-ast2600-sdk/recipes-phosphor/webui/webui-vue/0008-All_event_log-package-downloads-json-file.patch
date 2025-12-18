@@ -1,0 +1,34 @@
+From 92ab432037ae68cc0b62313e700b5a2088ec42c3 Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Mon, 7 Jul 2025 17:48:46 +0800
+Subject: [PATCH] All_event_log package downloads json file
+
+---
+ src/views/Logs/EventLogs/EventLogs.vue | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/views/Logs/EventLogs/EventLogs.vue b/src/views/Logs/EventLogs/EventLogs.vue
+index 573855d..fba63ef 100644
+--- a/src/views/Logs/EventLogs/EventLogs.vue
++++ b/src/views/Logs/EventLogs/EventLogs.vue
+@@ -33,8 +33,9 @@
+         <b-button
+           variant="primary"
+           :class="{ disabled: allLogs.length === 0 }"
+-          :download="exportFileNameByDate()"
++          :download="`${exportFileNameByDate()}.json`"
+           :href="href"
++          data-test-id="eventLogs-download"
+         >
+           <icon-export /> {{ $t('global.action.exportAll') }}
+         </b-button>
+@@ -368,7 +369,8 @@ export default {
+   },
+   computed: {
+     href() {
+-      return `data:text/json;charset=utf-8,${this.exportAllLogs()}`;
++      if (this.exportAllLogs().length == 0) return null;
++      return `data:text/json;charset=utf-8,[${this.exportAllLogs()}]`;
+     },
+     filteredRows() {
+       return this.searchFilter

@@ -1,0 +1,231 @@
+{
+    "Exposes": [
+        {
+            "Address": "0x56",
+            "Bus": 1,
+            "Name": "FRU_EEPROM",
+            "Type": "EEPROM",
+            "Present": "true"
+        },
+        {
+            "Address": "0x4E",
+            "Bus": 3,
+            "Name": "SYS0_TEMP",
+            "Thresholds": [
+                {
+                    "Direction": "greater than",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 70
+                },
+                {
+                    "Direction": "greater than",
+                    "Name": "upper non critical",
+                    "Severity": 0,
+                    "Value": 65
+                }
+            ],
+            "Type": "LM75A"
+        },
+        {
+            "Index": 0,
+            "Name": "ATX_12V",
+            "PowerState": "On",
+            "ScaleFactor": 0.0913,
+            "Thresholds": [
+                {
+                    "Direction": "greater than",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 13.2
+                },
+                {
+                    "Direction": "greater than",
+                    "Name": "upper non critical",
+                    "Severity": 0,
+                    "Value": 12.6
+                },
+                {
+                    "Direction": "less than",
+                    "Name": "lower non critical",
+                    "Severity": 0,
+                    "Value": 11.4
+                },
+                {
+                    "Direction": "less than",
+                    "Name": "lower critical",
+                    "Severity": 1,
+                    "Value": 10.8
+                }
+            ],
+            "Type": "ADC"
+        },      
+        {
+            "Index": 1,
+            "Name": "ATX_5V",
+            "PowerState": "On",
+            "ScaleFactor": 0.2132,
+            "Thresholds": [
+                {
+                    "Direction": "greater than",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 5.5
+                },
+                {
+                    "Direction": "greater than",
+                    "Name": "upper non critical",
+                    "Severity": 0,
+                    "Value": 5.25
+                },
+                {
+                    "Direction": "less than",
+                    "Name": "lower non critical",
+                    "Severity": 0,
+                    "Value": 4.75
+                },
+                {
+                    "Direction": "less than",
+                    "Name": "lower critical",
+                    "Severity": 1,
+                    "Value": 4.5
+                }
+            ],
+            "Type": "ADC"
+        },
+        {
+            "Index": 2,
+            "Name": "ATX_5VSB",
+            "ScaleFactor": 0.2132,
+            "Thresholds": [
+                {
+                    "Direction": "greater than",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 5.5
+                },
+                {
+                    "Direction": "greater than",
+                    "Name": "upper non critical",
+                    "Severity": 0,
+                    "Value": 5.25
+                },
+                {
+                    "Direction": "less than",
+                    "Name": "lower non critical",
+                    "Severity": 0,
+                    "Value": 4.75
+                },
+                {
+                    "Direction": "less than",
+                    "Name": "lower critical",
+                    "Severity": 1,
+                    "Value": 4.5
+                }
+            ],
+            "Type": "ADC"
+        },
+        {
+            "Index": 3,
+            "Name": "ATX_3V3",
+            "PowerState": "On",
+            "ScaleFactor": 0.325,
+            "Thresholds": [
+                {
+                    "Direction": "greater than",
+                    "Name": "upper critical",
+                    "Severity": 1,
+                    "Value": 3.6
+                },
+                {
+                    "Direction": "greater than",
+                    "Name": "upper non critical",
+                    "Severity": 0,
+                    "Value": 3.45
+                },
+                {
+                    "Direction": "less than",
+                    "Name": "lower non critical",
+                    "Severity": 0,
+                    "Value": 3.15
+                },
+                {
+                    "Direction": "less than",
+                    "Name": "lower critical",
+                    "Severity": 1,
+                    "Value": 3.0
+                }
+            ],
+            "Type": "ADC"
+        },
+        {
+            "Index": 7,
+            "Name": "VCC_RTC",
+            "ScaleFactor": 1.0,
+            "Thresholds": [
+                {
+                    "Direction": "less than",
+                    "Name": "lower non critical",
+                    "Severity": 0,
+                    "Value": 2.31
+                },
+                {
+                    "Direction": "less than",
+                    "Name": "lower critical",
+                    "Severity": 1,
+                    "Value": 2.0
+                }
+            ],
+            "Type": "ADC"
+        },
+		{
+			"BindConnector": "System Fan connector 1",
+			"Index": 0,
+			"MaxReading": 13500,
+			"Name": "SYS_FAN1_TACH",
+			"Thresholds": [
+							{
+								"Direction": "less than",
+								"Name": "lower critical",
+								"Severity": 1,
+								"Value": 1350
+							},
+							{
+								"Direction": "less than",
+								"Name": "lower non critical",
+								"Severity": 0,
+								"Value": 2025
+							}
+						],
+                        "PowerState": "On",
+						"Type": "AspeedFan"
+				},
+        {
+            "Class": "Aspeed2600_Hwmon",
+            "Name": "Chassis Intrusion Sensor",
+            "Type": "ChassisIntrusionSensor"
+        }
+    ],
+    "xyz.openbmc_project.Inventory.Decorator.Ipmi": {
+        "EntityId": 7,
+        "EntityInstance": 0
+    },
+    "Name": "AST2600 EVB",
+    "Probe": [
+        "xyz.openbmc_project.FruDevice({'PRODUCT_PRODUCT_NAME': 'SOM-RM10'})"
+    ],
+    "Type": "Board",
+    "xyz.openbmc_project.Inventory.Decorator.Asset": {
+      "Manufacturer": "$PRODUCT_MANUFACTURER Co., Ltd.",
+      "Model": "$PRODUCT_PRODUCT_NAME",
+      "PartNumber": "$PRODUCT_PART_NUMBER",
+      "SerialNumber": "$PRODUCT_SERIAL_NUMBER"
+    },
+    "xyz.openbmc_project.Inventory.Decorator.AssetTag": {
+  	  "AssetTag": "$PRODUCT_ASSET_TAG"
+    },
+    "xyz.openbmc_project.Inventory.Item.Board.Motherboard": {
+      "ProductId": 10
+    },
+    "xyz.openbmc_project.Inventory.Item.System": {}
+}

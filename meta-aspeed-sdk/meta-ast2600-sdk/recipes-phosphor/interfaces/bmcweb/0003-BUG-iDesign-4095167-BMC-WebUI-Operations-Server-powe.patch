@@ -1,0 +1,30 @@
+From dde926cb51ae7973382f1ad254a83a322f1bf40a Mon Sep 17 00:00:00 2001
+From: Vincent Lai <Vincent.Lai@advantech.com.tw>
+Date: Thu, 16 Oct 2025 16:27:37 +0800
+Subject: [PATCH] [BUG][iDesign#4095167] - [BMC WebUI - Operations] Server
+ power operations - System always boot to BIOS setup menu after change boot
+ seetings override to 'none'
+
+---
+ redfish-core/lib/systems.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/redfish-core/lib/systems.hpp b/redfish-core/lib/systems.hpp
+index 2687ecf9..9b5e5d2d 100644
+--- a/redfish-core/lib/systems.hpp
++++ b/redfish-core/lib/systems.hpp
+@@ -1604,12 +1604,12 @@ inline void setBootEnable(const std::shared_ptr<bmcweb::AsyncResp>& asyncResp,
+     // Source target specified
+     BMCWEB_LOG_DEBUG("Boot enable: {}", *bootEnable);
+ 
+-    bool bootOverrideEnable = false;
++    bool bootOverrideEnable = true; //iDesign#4095167
+     bool bootOverridePersistent = false;
+     // Figure out which DBUS interface and property to use
+     if (*bootEnable == "Disabled")
+     {
+-        bootOverrideEnable = false;
++        bootOverrideEnable = true; //iDesign#4095167
+     }
+     else if (*bootEnable == "Once")
+     {

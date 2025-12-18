@@ -1,0 +1,844 @@
+From 6af723344829b6430f285db5926b4b5aa02202d1 Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Fri, 27 Jun 2025 17:23:09 +0800
+Subject: [PATCH] Modify for ADVANTECH SOM RM10 support it in Ast2600 DTS file
+
+---
+ .../boot/dts/aspeed/aspeed-ast2600-evb.dts    | 617 +++++++-----------
+ 1 file changed, 221 insertions(+), 396 deletions(-)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-ast2600-evb.dts b/arch/arm/boot/dts/aspeed/aspeed-ast2600-evb.dts
+index 35a2cd4bc249..a5329984799b 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-ast2600-evb.dts
++++ b/arch/arm/boot/dts/aspeed/aspeed-ast2600-evb.dts
+@@ -8,7 +8,8 @@
+ #include <dt-bindings/i2c/i2c.h>
+ 
+ / {
+-	model = "AST2600 EVB";
++
++	model = "AST2600 - RM10";
+ 	compatible = "aspeed,ast2600-evb", "aspeed,ast2600";
+ 
+ 	aliases {
+@@ -19,6 +20,29 @@ chosen {
+ 		bootargs = "console=ttyS4,115200n8";
+ 	};
+ 
++	leds {
++		compatible = "gpio-leds";
++
++		led-identify {
++			gpios = <&gpio0 ASPEED_GPIO(G, 1) GPIO_ACTIVE_HIGH>;
++		};
++
++		led-fault {
++			gpios = <&gpio0 ASPEED_GPIO(G, 2) GPIO_ACTIVE_HIGH>;
++		};
++		
++	};
++
++	gpio-keys {
++		compatible = "gpio-keys";
++
++		psu0-alert-n {
++			label = "psu0-alert-n";
++			gpios = <&gpio0 ASPEED_GPIO(Y, 0) GPIO_ACTIVE_LOW>;
++			linux,code = <ASPEED_GPIO(Y, 0)>;
++		};
++	};
++
+ 	memory@80000000 {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x80000000>;
+@@ -30,13 +54,6 @@ reserved-memory {
+ 		ranges;
+ 
+ 		video_engine_memory: video {
+-			size = <0x02c00000>;
+-			alignment = <0x00100000>;
+-			compatible = "shared-dma-pool";
+-			reusable;
+-		};
+-
+-		rvas_memory: rvas {
+ 			size = <0x04000000>;
+ 			alignment = <0x01000000>;
+ 			compatible = "shared-dma-pool";
+@@ -49,15 +66,6 @@ gfx_memory: framebuffer {
+ 			compatible = "shared-dma-pool";
+ 			reusable;
+ 		};
+-
+-		ssp_memory: ssp_memory {
+-			size = <0x02000000>;
+-			alignment = <0x01000000>;
+-			shm-size = <0x1000>;
+-			compatible = "shared-dma-pool";
+-			no-map;
+-		};
+-
+ 		mctp0_reserved: mctp0_reserved@b1000000 {
+ 			reg = <0xb1000000 0x10000>;
+ 			compatible = "shared-dma-pool";
+@@ -70,56 +78,10 @@ mctp1_reserved: mctp1_reserved@b1010000 {
+ 			no-map;
+ 		};
+ 
+-		bmc_dev_memory: bmc-dev-memory@b1020000 {
+-			reg = <0xb1020000 0x100000>;
++		espi_mmbi_memory: espi_mmbi_memory {
+ 			no-map;
++			reg = <0x9eff0000 0x10000>;
+ 		};
+-
+-		uhci_reserved: uhci_reserved@b1120000 {
+-			reg = <0xb1120000 0x4000>;
+-			compatible = "shared-dma-pool";
+-			no-map;
+-		};
+-	};
+-
+-	vcc_sdhci0: regulator-vcc-sdhci0 {
+-		compatible = "regulator-fixed";
+-		regulator-name = "SDHCI0 Vcc";
+-		regulator-min-microvolt = <3300000>;
+-		regulator-max-microvolt = <3300000>;
+-		gpios = <&gpio0 ASPEED_GPIO(V, 0) GPIO_ACTIVE_HIGH>;
+-		enable-active-high;
+-	};
+-
+-	vccq_sdhci0: regulator-vccq-sdhci0 {
+-		compatible = "regulator-gpio";
+-		regulator-name = "SDHCI0 VccQ";
+-		regulator-min-microvolt = <1800000>;
+-		regulator-max-microvolt = <3300000>;
+-		gpios = <&gpio0 ASPEED_GPIO(V, 1) GPIO_ACTIVE_HIGH>;
+-		gpios-states = <1>;
+-		states = <3300000 1>,
+-			 <1800000 0>;
+-	};
+-
+-	vcc_sdhci1: regulator-vcc-sdhci1 {
+-		compatible = "regulator-fixed";
+-		regulator-name = "SDHCI1 Vcc";
+-		regulator-min-microvolt = <3300000>;
+-		regulator-max-microvolt = <3300000>;
+-		gpios = <&gpio0 ASPEED_GPIO(V, 2) GPIO_ACTIVE_HIGH>;
+-		enable-active-high;
+-	};
+-
+-	vccq_sdhci1: regulator-vccq-sdhci1 {
+-		compatible = "regulator-gpio";
+-		regulator-name = "SDHCI1 VccQ";
+-		regulator-min-microvolt = <1800000>;
+-		regulator-max-microvolt = <3300000>;
+-		gpios = <&gpio0 ASPEED_GPIO(V, 3) GPIO_ACTIVE_HIGH>;
+-		gpios-states = <1>;
+-		states = <3300000 1>,
+-			 <1800000 0>;
+ 	};
+ 
+ 	fan0: pwm-fan0 {
+@@ -268,76 +230,44 @@ iio-hwmon {
+ 
+ &pwm_tach {
+ 	status = "okay";
++	#pwm-cells = <3>;
++	aspeed,pwm-outputs = <7>;
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_pwm0_default &pinctrl_pwm1_default
+-		     &pinctrl_pwm2_default &pinctrl_pwm3_default
+-		     &pinctrl_pwm4_default &pinctrl_pwm5_default
+-		     &pinctrl_pwm6_default &pinctrl_pwm7_default
+-		     &pinctrl_pwm8g1_default &pinctrl_pwm9g1_default
+-		     &pinctrl_pwm10g1_default &pinctrl_pwm11g1_default
+-		     &pinctrl_pwm12g1_default &pinctrl_pwm13g1_default
+-		     &pinctrl_pwm14g1_default
+-		     &pinctrl_tach0_default &pinctrl_tach1_default
+-		     &pinctrl_tach2_default &pinctrl_tach3_default
+-		     &pinctrl_tach4_default &pinctrl_tach5_default
+-		     &pinctrl_tach6_default &pinctrl_tach7_default
+-		     &pinctrl_tach8_default &pinctrl_tach9_default
+-		     &pinctrl_tach10_default &pinctrl_tach11_default
+-		     &pinctrl_tach12_default &pinctrl_tach13_default
+-		     &pinctrl_tach14_default &pinctrl_tach15_default>;
++	pinctrl-0 = <&pinctrl_pwm0_default
++					&pinctrl_pwm1_default
++					&pinctrl_pwm2_default
++					&pinctrl_pwm3_default
++					&pinctrl_tach0_default
++					&pinctrl_tach2_default
++					&pinctrl_tach4_default
++					&pinctrl_tach6_default
++					&pinctrl_tach8_default
++					&pinctrl_tach10_default>;
+ 	fan-0 {
+ 		tach-ch = /bits/ 8 <0x0>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x00>;
+ 	};
+ 	fan-1 {
+ 		tach-ch = /bits/ 8 <0x1>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x02>;
+ 	};
+ 	fan-2 {
+ 		tach-ch = /bits/ 8 <0x2>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x04>;
+ 	};
+ 	fan-3 {
+ 		tach-ch = /bits/ 8 <0x3>;
+-	};
+-	fan-4 {
+-		tach-ch = /bits/ 8 <0x4>;
+-	};
+-	fan-5 {
+-		tach-ch = /bits/ 8 <0x5>;
+-	};
+-	fan-6 {
+-		tach-ch = /bits/ 8 <0x6>;
+-	};
+-	fan-7 {
+-		tach-ch = /bits/ 8 <0x7>;
+-	};
+-	fan-8 {
+-		tach-ch = /bits/ 8 <0x8>;
+-	};
+-	fan-9 {
+-		tach-ch = /bits/ 8 <0x9>;
+-	};
+-	fan-10 {
+-		tach-ch = /bits/ 8 <0xA>;
+-	};
+-	fan-11 {
+-		tach-ch = /bits/ 8 <0xB>;
+-	};
+-	fan-12 {
+-		tach-ch = /bits/ 8 <0xC>;
+-	};
+-	fan-13 {
+-		tach-ch = /bits/ 8 <0xD>;
+-	};
+-	fan-14 {
+-		tach-ch = /bits/ 8 <0xE>;
+-	};
+-	fan-15 {
+-		tach-ch = /bits/ 8 <0xF>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x06>;
+ 	};
+ };
+ 
++#define Chassis_Enable 0
++
++#if Chassis_Enable
+ &chassis {
+ 	status = "okay";
+ };
++#endif
+ 
+ &mdio0 {
+ 	status = "okay";
+@@ -370,33 +300,6 @@ &pinctrl_adc12_default &pinctrl_adc13_default
+ 		&pinctrl_adc14_default &pinctrl_adc15_default>;
+ };
+ 
+-&mdio1 {
+-	status = "okay";
+-
+-	ethphy1: ethernet-phy@0 {
+-		compatible = "ethernet-phy-ieee802.3-c22";
+-		reg = <0>;
+-	};
+-};
+-
+-&mdio2 {
+-	status = "okay";
+-
+-	ethphy2: ethernet-phy@0 {
+-		compatible = "ethernet-phy-ieee802.3-c22";
+-		reg = <0>;
+-	};
+-};
+-
+-&mdio3 {
+-	status = "okay";
+-
+-	ethphy3: ethernet-phy@0 {
+-		compatible = "ethernet-phy-ieee802.3-c22";
+-		reg = <0>;
+-	};
+-};
+-
+ &mac0 {
+ 	status = "okay";
+ 
+@@ -407,34 +310,14 @@ &mac0 {
+ 	pinctrl-0 = <&pinctrl_rgmii1_default>;
+ };
+ 
+-&mac1 {
+-	status = "okay";
+-
+-	phy-mode = "rgmii-rxid";
+-	phy-handle = <&ethphy1>;
+-
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_rgmii2_default>;
+-};
+-
+ &mac2 {
+ 	status = "okay";
+ 
+-	phy-mode = "rgmii";
+-	phy-handle = <&ethphy2>;
++	phy-mode = "rmii";
++	use-ncsi;
+ 
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_rgmii3_default>;
+-};
+-
+-&mac3 {
+-	status = "okay";
+-
+-	phy-mode = "rgmii";
+-	phy-handle = <&ethphy3>;
+-
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_rgmii4_default>;
++	pinctrl-0 = <&pinctrl_rmii3_default>;
+ };
+ 
+ &syscon {
+@@ -452,275 +335,154 @@ &syscon {
+ 			  0x08 0x04>;
+ };
+ 
+-&emmc_controller {
+-	status = "okay";
+-	mmc-hs200-1_8v;
+-};
+-
+-&emmc {
+-	status = "okay";
+-#if 1
+-	bus-width = <4>;
+-#else
+-	bus-width = <8>;
+-	pinctrl-0 = <&pinctrl_emmc_default
+-			&pinctrl_emmcg8_default>;
+-#endif
+-	non-removable;
+-	max-frequency = <200000000>;
+-};
+-
+ &rtc {
+ 	status = "okay";
+ };
+ 
+ &fmc {
+ 	status = "okay";
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_fwqspi_default>;
+-
+ 	flash@0 {
+ 		status = "okay";
+-		m25p,fast-read;
+-		label = "bmc";
+-		spi-rx-bus-width = <4>;
+-		spi-tx-bus-width = <4>;
++        label = "bmc";
+ 		spi-max-frequency = <50000000>;
+-#include "aspeed-evb-flash-layout-64.dtsi"
+-	};
+-
+-	flash@1 {
+-		status = "okay";
+-		m25p,fast-read;
+-		label = "fmc0:1";
+-		spi-rx-bus-width = <4>;
+ 		spi-tx-bus-width = <4>;
+-		spi-max-frequency = <50000000>;
+-	};
+-
+-	flash@2 {
+-		status = "disabled";
+ 		m25p,fast-read;
+-		label = "fmc0:2";
+-		spi-rx-bus-width = <4>;
+-		spi-tx-bus-width = <4>;
+-		spi-max-frequency = <50000000>;
++#include "aspeed-evb-flash-layout-64.dtsi"
+ 	};
+ };
+ 
+-&peci0 {
+-	status = "okay";
+-};
+-
+-&mctp0 {
+-	status = "okay";
+-	memory-region = <&mctp0_reserved>;
+-};
+-
+ &spi1 {
+-	status = "okay";
++	spi-dma-write;
++	low-spi-clk-write;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_spi1_default &pinctrl_spi1cs1_default
+-				 &pinctrl_qspi1_default>;
++				&pinctrl_qspi1_default>;
++	status = "okay";
+ 
+ 	flash@0 {
+ 		status = "okay";
+-		m25p,fast-read;
+ 		label = "spi1:0";
+-		spi-rx-bus-width = <4>;
+-		spi-tx-bus-width = <4>;
+ 		spi-max-frequency = <50000000>;
+-	};
+-
+-	flash@1 {
+-		status = "disabled";
+-		m25p,fast-read;
+-		label = "spi1:1";
+-		spi-rx-bus-width = <4>;
+ 		spi-tx-bus-width = <4>;
+-		spi-max-frequency = <50000000>;
++		m25p,fast-read;
+ 	};
+ };
+ 
+-&spi2 {
++&spi2{
++	status = "okay";
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_spi2_default &pinctrl_spi2cs1_default
+-				&pinctrl_spi2cs2_default &pinctrl_qspi2_default>;
+-	status = "okay";
+-
+-	flash@0 {
+-		status = "okay";
+-		m25p,fast-read;
+-		label = "spi2:0";
+-		spi-tx-bus-width = <4>;
+-		spi-rx-bus-width = <4>;
+-		spi-max-frequency = <50000000>;
+-	};
+-
++							&pinctrl_spi2cs2_default &pinctrl_qspi2_default>;
++	fmc-spi-user-mode;
++	compatible = "aspeed,ast2600-spi";
+ 	flash@1 {
+-		status = "disabled";
+-		m25p,fast-read;
+-		label = "spi2:1";
+-		spi-tx-bus-width = <4>;
+-		spi-rx-bus-width = <4>;
+-		spi-max-frequency = <50000000>;
+-	};
+-
+-	flash@2 {
+-		status = "disabled";
+-		m25p,fast-read;
+-		label = "spi2:2";
+-		spi-tx-bus-width = <4>;
+-		spi-rx-bus-width = <4>;
+-		spi-max-frequency = <50000000>;
++		compatible = "jedec,spi-nor";
++		label = "pnor";
++    status = "okay";
+ 	};
+-};
+ 
+-#if 0
+-&pcie_vuart0 {
+-	port = <0x3f8>;
+-	sirq = <4>;
+-	sirq-polarity = <0>;
+-
+-	status = "okay";
+-};
+-
+-&pcie_vuart1 {
+-	port = <0x2f8>;
+-	sirq = <3>;
+-	sirq-polarity = <0>;
+-
+-	status = "okay";
+ };
+ 
+-&pcie_kcs1 {
+-	kcs-io-addr = <0x3a0>;
+-	kcs-channel = <5>;
++&i2c0 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
+ };
+ 
+-&pcie_kcs2 {
+-	kcs-io-addr = <0x3a8>;
+-	kcs-channel = <6>;
++&i2c1 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
++	eeprom@56 {
++		compatible = "st,24c64","atmel,24c64";
++		reg = <0x56>;
++		pagesize = <32>;
++	};
+ };
+ 
+-&pcie_kcs3 {
+-	kcs-io-addr = <0x3a2>;
+-	kcs-channel = <7>;
++&i2c2 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
+ };
+ 
+-&pcie_kcs4 {
+-	kcs-io-addr = <0x3a4>;
+-	kcs-channel = <8>;
++&i2c3 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
++	lm75@4e {
++				compatible = "ti,lm75";
++				reg = <0x4E>;
++	};
+ };
+ 
+-&pcie_ibt {
++&i2c4 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
+-};
+ 
+-&bmc_dev {
+-	status = "okay";
+-	memory-region = <&bmc_dev_memory>;
+-};
+-#endif
++    psu0: psu@58 {
++        compatible = "pmbus";
++        reg = <0x58>;
++    };
+ 
+-&i2c4 {
+-	status = "okay";
+-	multi-master;
+-	mctp-controller;
+-	mctp@10 {
+-		compatible = "mctp-i2c-controller";
+-		reg = <(0x10 | I2C_OWN_SLAVE_ADDRESS)>;
+-	};
++    psu1: psu@59 {
++        compatible = "pmbus";
++        reg = <0x59>;
++    };
+ };
+ 
+ &i2c5 {
+-	status = "okay";
+ 	multi-master;
+-	mctp-controller;
+-	mctp@12 {
+-		compatible = "mctp-i2c-controller";
+-		reg = <(0x12 | I2C_OWN_SLAVE_ADDRESS)>;
+-	};
++	aspeed,hw-timeout-ms = <300>;
++	status = "okay";
+ };
+ 
+ &i2c6 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
+-
+-	ipmb@12 {
+-		compatible = "ipmb-dev";
+-		reg = <0x12>;
+-		i2c-protocol;
+-	};
+ };
+ 
+ &i2c7 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
+-
+-	temp@2e {
+-		compatible = "adi,adt7490";
+-		reg = <0x2e>;
+-	};
+-
+-	eeprom@50 {
+-		compatible = "atmel,24c08";
+-		reg = <0x50>;
+-		pagesize = <16>;
+-	};
+-
+ };
+ 
+ &i2c8 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
+-
+-	lm75@4d {
+-		compatible = "national,lm75";
+-		reg = <0x4d>;
+-	};
+-
+ };
+ 
+ &i2c9 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
+ };
+ 
+-&jtag1 {
++&i2c10 {
++	multi-master;
++	aspeed,hw-timeout-ms = <300>;
+ 	status = "okay";
+ };
+ 
+-#if 0
+-&ehci0 {
+-	status = "okay";
+-};
+-#endif
+ 
+-&ehci1 {
++&jtag1 {
+ 	status = "okay";
+ };
+ 
+-&uhci {
++
++&ehci1 {
+ 	status = "okay";
+-	memory-region = <&uhci_reserved>;
+ };
+ 
+ &vhub {
+ 	status = "okay";
+ 	pinctrl-names = "default";
+-#if 0
+-	pinctrl-0 = <&pinctrl_usb2adp_default>;
+-#endif
+ };
+ 
+-#if 0
+-&udc {
+-	status = "okay";
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_usb2bd_default>;
+-};
+-#endif
+ 
+ &uphyb {
+ 	status = "okay";
+@@ -731,45 +493,6 @@ &sdc {
+ 	mmc-hs200-1_8v;
+ };
+ 
+-/*
+- * The signal voltage of sdhci0 and sdhci1 on AST2600-A2 EVB is able to be
+- * toggled by GPIO pins.
+- * In the reference design, GPIOV0 of AST2600-A2 EVB is connected to the
+- * power load switch that provides 3.3v to sdhci0 vdd, GPIOV1 is connected to
+- * a 1.8v and a 3.3v power load switch that provides signal voltage to
+- * sdhci0 bus.
+- * If GPIOV0 is active high, sdhci0 is enabled, otherwise, sdhci0 is disabled.
+- * If GPIOV1 is active high, 3.3v power load switch is enabled, sdhci0 signal
+- * voltage is 3.3v, otherwise, 1.8v power load switch will be enabled,
+- * sdhci0 signal voltage becomes 1.8v.
+- * AST2600-A2 EVB also supports toggling signal voltage for sdhci1.
+- * The design is the same as sdhci0, it uses GPIOV2 as power-gpio and GPIOV3
+- * as power-switch-gpio.
+- */
+-&sdhci0 {
+-	status = "okay";
+-	bus-width = <4>;
+-	max-frequency = <100000000>;
+-	sdhci-drive-type = /bits/ 8 <3>;
+-	sdhci-caps-mask = <0x6 0x0>;
+-	sdhci,wp-inverted;
+-	sd-uhs-sdr104; /* enable sdr104 to execute tuning */
+-	vmmc-supply = <&vcc_sdhci0>;
+-	vqmmc-supply = <&vccq_sdhci0>;
+-};
+-
+-&sdhci1 {
+-	status = "okay";
+-	bus-width = <4>;
+-	max-frequency = <100000000>;
+-	sdhci-drive-type = /bits/ 8 <3>;
+-	sdhci-caps-mask = <0x6 0x0>;
+-	sdhci,wp-inverted;
+-	sd-uhs-sdr104; /* enable sdr104 to execute tuning */
+-	vmmc-supply = <&vcc_sdhci1>;
+-	vqmmc-supply = <&vccq_sdhci1>;
+-};
+-
+ #if 1
+ &video {
+ 	status = "okay";
+@@ -801,11 +524,25 @@ &pcie1 {
+ 	status = "okay";
+ };
+ 
++&espi {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_espi_default>;
++};
++
+ &espi {
+ 	status = "okay";
+-	perif-dma-mode;
+-	oob-dma-mode;
+-	flash-dma-mode;
++	interrupts-extended = <&gic GIC_SPI 42 IRQ_TYPE_LEVEL_HIGH>, <&gpio0 ASPEED_GPIO(W, 7) IRQ_TYPE_EDGE_FALLING>;
++	resets = <&syscon ASPEED_RESET_ESPI>;
++
++	memory-region = <&espi_mmbi_memory>;
++
++	perif-mmbi-enable;
++	perif-mmbi-src-addr = <0xf6810000>;
++	perif-mmbi-instance-size = <1>;
++	instance@0 {
++		channel = <0x00>;
++		protocols = [02 03];
++	};
+ };
+ 
+ &lpc_snoop {
+@@ -817,6 +554,84 @@ &ibt {
+ 	status = "okay";
+ };
+ 
++&lpc_pcc {
++	status = "okay";
++	dma-mode;
++	rec-mode = <0x1>;
++	port-addr = <0x80>;
++	port-addr-hbits-select = <0x1>;
++	port-addr-xbits = <0x0>;
++};
++
++&gpio0 {
++	status = "okay";
++	gpio-line-names =
++	/*A0-A7*/	"","","","","","","","",
++	/*B0-B7*/	"SMB_ALT1_N","LED_G","LED_R","PS_PWROK","SIO_POWER_GOOD","LED_B","BMC_GPIOB0","BMC_GPIOB7",
++	/*C0-C7*/	"","BMC_NCSI_TXEN","BMC_NCSI_TXD0","BMC_NCSI_TXD1","","","BMC_NCSI_RCLK","",
++	/*D0-D7*/	"BMC_NCSI_RXD0","BMC_NCSI_RXD1","BMC_NCSI_CRSDV","BMC_NCSI_RXER","","","","",
++	/*E0-E7*/	"","","","","","","","",
++	/*F0-F7*/	"","","","","","","","",
++	/*G0-G7*/	"","BMC_GPIOG1","BMC_GPIOG2","BMC_GPIOG3","BMC_GPIOG4","BMC_READY","RESET_OUT","FM_BMC_PWRBTN_OUT_R_N",
++	/*H0-H7*/	"BMC_FW_VER0","BMC_FW_VER1","BMC_FW_VER2","BMC_GPIOH3","","","","",
++	/*I0-I7*/	"","","","","","","","",
++	/*J0-J7*/	"SMBCLK_BMC_CH1","SMBDAT_BMC_CH1","FRU_BMC_CLK","FRU_BMC_DATA","","","I2C_BMC_SCL4","I2C_BMC_SDA4",
++	/*K0-K7*/	"I2C_BMC_SCL5","I2C_BMC_SDA5","","","","","","",
++	/*L0-L7*/	"","","SMBCLK_BMC_IPMB","SMBDAT_BMC_IPMB","","","BMC_HSYNC","BMC_VSYNC",
++	/*M0-M7*/	"","","","","","","","",
++	/*N0-N7*/	"","","","","","","","",
++	/*O0-O7*/	"BMC_FANPWM0","","","","","","","",
++	/*P0-P7*/	"POWER_BUTTON","","RESET_BUTTON","","","","SIO_S5","BMC_HBLED_N",
++	/*Q0-Q7*/	"BMC_FANTACH0","","","","","","","",
++	/*R0-R7*/	"","","","","","","","",
++	/*S0-S7*/	"BMC_MDC1_R","BMC_MDIO1_R","PCIE_WAKE_N","","","","","",
++	/*T0-T7*/	"ATX_12V","ATX_5V","ATX_5VSB","ATX_3V3","","","","VCC_RTC",
++	/*U0-U7*/	"","","","","","","","",
++	/*V0-V7*/	"SIO_ONCONTROL","POST_COMPLETE","RST_RGMII_PHYRST_N","PHY_8211F_INT_N","","IRQ_BMC_CPU_NMI_P0","NMI_BUTTON","ID_BUTTON",
++	/*W0-W7*/	"LPC_LAD0_ESPI_R_IO0", "LPC_LAD1_ESPI_R_IO1", "LPC_LAD2_ESPI_R_IO2", "LPC_LAD3_ESPI_R_IO3", "CLK_24M_66M_LPC0_ESPI_BMC", "LPC_LFRAME_N_ESPI_CS0_BMC_N", "IRQ_LPC_SERIRQ_ESPI_ALERT_N", "RST_LPC_LRST_ESPI_RST_BMC_R_N",
++	/*X0-X7*/	"","","","","","","","",
++	/*Y0-Y7*/	"SMB_ALT5_N","","","","BMC_SPI1_DQ2","BMC_SPI1_DQ3","","",
++	/*Z0-Z7*/	"","","","SPI1CK","SPI1MOSI","SPI1MISO","SPI1DQ2","SPI1DQ3";
++
++	RST_RGMII_PHYRST_N {
++		gpio-hog;
++		gpios = <ASPEED_GPIO(V, 2) GPIO_ACTIVE_LOW>;
++		output-low;
++		gpio-line-name = "RST_RGMII_PHYRST_N";
++	};
++};
++
++&gpio1 {
++	status = "okay";
++	gpio-line-names = /* GPIO18 A-E */
++	/*A0-A7*/	"RGMII1TXCK","RGMII1TXCTL","RGMII1TXD0","RGMII1TXD1","RGMII1TXD2","RGMII1TXD3","RGMII1RXCK","RGMII1RXCTL",
++	/*B0-B7*/	"RGMII1RXD0","RGMII1RXD1","RGMII1RXD2","RGMII1RXD3","","","","",
++	/*C0-C7*/	"","","","","","","","",
++	/*D0-D7*/	"","","","","","","","",
++	/*E0-E3*/	"VBIOS_SPI_CS_R","VBIOS_SPI_CLK_R","VBIOS_SPI_MOSI_R","VBIOS_SPI_MISO_R";
++};
++
++&sgpiom0 {
++	ngpios = <80>;
++	bus-frequency = <2000000>;
++	status = "okay";
++#if 0
++	/* SGPIO lines. even: input, odd: output */
++	gpio-line-names =
++	/*A0-A7*/	"","","","","","","","",
++	/*B0-B7*/	"","","","","","","","",
++	/*C0-C7*/	"","","","","","","","",
++	/*D0-D7*/	"","","","","","","","",
++	/*E0-E7*/	"","","","","","","","",
++	/*F0-F7*/	"","","","","","","","",
++	/*G0-G7*/	"","","","","","","","",
++	/*H0-H7*/	"","","","","","","","",
++	/*I0-I7*/	"","","","","","","","",
++	/*J0-J7*/	"","","","","","","","";
++#endif
++};
++
++
+ &kcs1 {
+ 	kcs-io-addr = <0xca0>;
+ 	kcs-channel = <1>;
+@@ -879,6 +694,14 @@ &acry {
+ 	status = "okay";
+ };
+ 
++&vuart1 {
++    virtual;
++    port = <0x3E8>;
++    sirq = <4>;
++    sirq-polarity = <0>;
++    status = "okay";
++};
++
+ &uart3 {
+ 	status = "okay";
+ };
+@@ -899,6 +722,9 @@ &uart_routing {
+ 	status = "okay";
+ };
+ 
++#define I3C_MOLUDE_EN    0
++
++#if I3C_MOLUDE_EN
+ /*
+  * Aspeed I3C daughter card configuration
+  *
+@@ -1029,6 +855,5 @@ &i3c5 {
+ 	status = "okay";
+ };
+ 
+-&ssp {
+-	memory-region = <&ssp_memory>;
+-};
++#endif
++

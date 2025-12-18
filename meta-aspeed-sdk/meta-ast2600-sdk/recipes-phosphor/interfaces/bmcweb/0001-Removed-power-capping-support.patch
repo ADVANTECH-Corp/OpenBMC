@@ -1,0 +1,147 @@
+From 5a78387b1736311bf428985a585f1dac4cdd3665 Mon Sep 17 00:00:00 2001
+From: Vincent Lai <Vincent.Lai@advantech.com.tw>
+Date: Tue, 10 Jun 2025 14:49:55 +0800
+Subject: [PATCH] Removed power capping support.
+
+---
+ redfish-core/lib/power.hpp | 120 ++++++++++++++++++-------------------
+ 1 file changed, 60 insertions(+), 60 deletions(-)
+
+diff --git a/redfish-core/lib/power.hpp b/redfish-core/lib/power.hpp
+index 18d13808..5fea3ff1 100644
+--- a/redfish-core/lib/power.hpp
++++ b/redfish-core/lib/power.hpp
+@@ -104,7 +104,7 @@ inline void afterGetChassisPath(
+ inline void afterPowerCapSettingGet(
+     const std::shared_ptr<SensorsAsyncResp>& sensorAsyncResp,
+     const boost::system::error_code& ec,
+-    const dbus::utility::DBusPropertiesMap& properties)
++    const dbus::utility::DBusPropertiesMap& /*properties*/)
+ {
+     if (ec)
+     {
+@@ -132,65 +132,65 @@ inline void afterPowerCapSettingGet(
+         tempArray.emplace_back(std::move(powerControl));
+     }
+ 
+-    nlohmann::json& sensorJson = tempArray.back();
+-    bool enabled = false;
+-    double powerCap = 0.0;
+-    int64_t scale = 0;
+-
+-    for (const std::pair<std::string, dbus::utility::DbusVariantType>&
+-             property : properties)
+-    {
+-        if (property.first == "Scale")
+-        {
+-            const int64_t* i = std::get_if<int64_t>(&property.second);
+-
+-            if (i != nullptr)
+-            {
+-                scale = *i;
+-            }
+-        }
+-        else if (property.first == "PowerCap")
+-        {
+-            const double* d = std::get_if<double>(&property.second);
+-            const int64_t* i = std::get_if<int64_t>(&property.second);
+-            const uint32_t* u = std::get_if<uint32_t>(&property.second);
+-
+-            if (d != nullptr)
+-            {
+-                powerCap = *d;
+-            }
+-            else if (i != nullptr)
+-            {
+-                powerCap = static_cast<double>(*i);
+-            }
+-            else if (u != nullptr)
+-            {
+-                powerCap = *u;
+-            }
+-        }
+-        else if (property.first == "PowerCapEnable")
+-        {
+-            const bool* b = std::get_if<bool>(&property.second);
+-
+-            if (b != nullptr)
+-            {
+-                enabled = *b;
+-            }
+-        }
+-    }
+-
+-    // LimitException is Mandatory attribute as per OCP
+-    // Baseline Profile – v1.0.0, so currently making it
+-    // "NoAction" as default value to make it OCP Compliant.
+-    sensorJson["PowerLimit"]["LimitException"] = "NoAction";
+-
+-    if (enabled)
+-    {
+-        // Redfish specification indicates PowerLimit should
+-        // be null if the limit is not enabled.
+-        sensorJson["PowerLimit"]["LimitInWatts"] = powerCap *
+-                                                   std::pow(10, scale);
+-    }
++//    nlohmann::json& sensorJson = tempArray.back();
++//    bool enabled = false;
++//    double powerCap = 0.0;
++//    int64_t scale = 0;
++//
++//    for (const std::pair<std::string, dbus::utility::DbusVariantType>&
++//             property : properties)
++//    {
++//        if (property.first == "Scale")
++//        {
++//            const int64_t* i = std::get_if<int64_t>(&property.second);
++//
++//            if (i != nullptr)
++//            {
++//                scale = *i;
++//            }
++//        }
++//        else if (property.first == "PowerCap")
++//        {
++//            const double* d = std::get_if<double>(&property.second);
++//            const int64_t* i = std::get_if<int64_t>(&property.second);
++//            const uint32_t* u = std::get_if<uint32_t>(&property.second);
++//
++//            if (d != nullptr)
++//            {
++//                powerCap = *d;
++//            }
++//            else if (i != nullptr)
++//            {
++//                powerCap = static_cast<double>(*i);
++//            }
++//            else if (u != nullptr)
++//            {
++//                powerCap = *u;
++//            }
++//        }
++//        else if (property.first == "PowerCapEnable")
++//        {
++//            const bool* b = std::get_if<bool>(&property.second);
++//
++//            if (b != nullptr)
++//            {
++//                enabled = *b;
++//            }
++//        }
++//    }
++//
++//    // LimitException is Mandatory attribute as per OCP
++//    // Baseline Profile – v1.0.0, so currently making it
++//    // "NoAction" as default value to make it OCP Compliant.
++//    sensorJson["PowerLimit"]["LimitException"] = "NoAction";
++//
++//    if (enabled)
++//    {
++//        // Redfish specification indicates PowerLimit should
++//        // be null if the limit is not enabled.
++//        sensorJson["PowerLimit"]["LimitInWatts"] = powerCap *
++//                                                   std::pow(10, scale);
++//    }
+ }
+ 
+ using Mapper = dbus::utility::MapperGetSubTreePathsResponse;

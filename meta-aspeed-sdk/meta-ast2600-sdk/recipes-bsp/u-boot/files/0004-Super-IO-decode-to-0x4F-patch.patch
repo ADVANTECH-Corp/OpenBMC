@@ -1,0 +1,26 @@
+From ade0cedac416920dd450872b5f18c31e9686763e Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Fri, 5 Sep 2025 09:09:57 +0800
+Subject: [PATCH] Super IO decode to 0x4F patch
+
+---
+ board/aspeed/evb_ast2600/evb_ast2600.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/board/aspeed/evb_ast2600/evb_ast2600.c b/board/aspeed/evb_ast2600/evb_ast2600.c
+index 9996f73ced..537d027802 100644
+--- a/board/aspeed/evb_ast2600/evb_ast2600.c
++++ b/board/aspeed/evb_ast2600/evb_ast2600.c
+@@ -74,7 +74,11 @@
+ #define GPIO_BIT_7			BIT(7)
+ 
+ static void set_advantech_pin_state(void)
+-{   // SET SOM-RM10 GPIOI6 OUTPUT LOW INIT 
++{
++	// Decode 0x4E
++#define SUPERIO_ADD_SEL BIT(2)
++	writel(readl(SCU_BASE | SCU_510) | SUPERIO_ADD_SEL,	SCU_BASE | SCU_510);
++	// SET SOM-RM10 GPIOI6 OUTPUT LOW INIT
+ 	writel((readl(AST_GPIO_BASE | GPIO_074) & ~(GPIO_BIT_6)), AST_GPIO_BASE | GPIO_070);
+ 	writel(readl(AST_GPIO_BASE | GPIO_074) | (GPIO_BIT_6), AST_GPIO_BASE | GPIO_074);
+ }

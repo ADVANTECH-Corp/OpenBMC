@@ -1,0 +1,24 @@
+From 836468bd56e9b117498a3d616af80ac52ac3784f Mon Sep 17 00:00:00 2001
+From: Vincent Lai <Vincent.Lai@advantech.com.tw>
+Date: Thu, 19 Jun 2025 14:05:12 +0800
+Subject: [PATCH] Added support UEFI boot.
+
+---
+ src/store/modules/Operations/BootSettingsStore.js | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/store/modules/Operations/BootSettingsStore.js b/src/store/modules/Operations/BootSettingsStore.js
+index 1f5a628..928a022 100644
+--- a/src/store/modules/Operations/BootSettingsStore.js
++++ b/src/store/modules/Operations/BootSettingsStore.js
+@@ -54,7 +54,9 @@ const BootSettingsStore = {
+       } else {
+         data.Boot.BootSourceOverrideEnabled = 'Continuous';
+       }
+-
++      // <!-- WEB_CONFIG_DEPEND_FEATURE_BEGIN:CONFIG_FORCE_BOOT_UEFI_MODE -->
++      data.Boot.BootSourceOverrideMode = 'UEFI';
++      // <!-- WEB_CONFIG_DEPEND_FEATURE_END:CONFIG_FORCE_BOOT_UEFI_MODE -->
+       return api
+         .patch('/redfish/v1/Systems/system', data)
+         .then((response) => {

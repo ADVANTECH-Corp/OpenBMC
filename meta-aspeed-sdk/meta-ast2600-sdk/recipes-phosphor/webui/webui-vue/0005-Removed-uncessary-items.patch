@@ -1,0 +1,121 @@
+From 6c9a479901aa8f0a4a0960e32184997cf40cf63a Mon Sep 17 00:00:00 2001
+From: Vincent Lai <Vincent.Lai@advantech.com.tw>
+Date: Thu, 26 Jun 2025 16:52:35 +0800
+Subject: [PATCH] Removed uncessary items.
+
+---
+ .../Inventory/InventoryTableBmcManager.vue    |  3 --
+ .../Inventory/InventoryTableChassis.vue       | 22 --------------
+ .../Inventory/InventoryTableSystem.vue        | 29 -------------------
+ 3 files changed, 54 deletions(-)
+ mode change 100644 => 100755 src/views/HardwareStatus/Inventory/InventoryTableBmcManager.vue
+ mode change 100644 => 100755 src/views/HardwareStatus/Inventory/InventoryTableChassis.vue
+ mode change 100644 => 100755 src/views/HardwareStatus/Inventory/InventoryTableSystem.vue
+
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableBmcManager.vue b/src/views/HardwareStatus/Inventory/InventoryTableBmcManager.vue
+old mode 100644
+new mode 100755
+index cf3ee2b..0f71c90
+--- a/src/views/HardwareStatus/Inventory/InventoryTableBmcManager.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableBmcManager.vue
+@@ -82,9 +82,6 @@
+                 <!-- Power state -->
+                 <dt>{{ $t('pageInventory.table.power') }}:</dt>
+                 <dd>{{ dataFormatter(item.powerState) }}</dd>
+-                <!-- Health rollup -->
+-                <dt>{{ $t('pageInventory.table.healthRollup') }}:</dt>
+-                <dd>{{ dataFormatter(item.healthRollup) }}</dd>
+                 <!-- BMC date and time -->
+                 <dt>{{ $t('pageInventory.table.bmcDateTime') }}:</dt>
+                 <dd>
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableChassis.vue b/src/views/HardwareStatus/Inventory/InventoryTableChassis.vue
+old mode 100644
+new mode 100755
+index 18ddfba..ac51a33
+--- a/src/views/HardwareStatus/Inventory/InventoryTableChassis.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableChassis.vue
+@@ -75,12 +75,6 @@
+                 <!-- Status state -->
+                 <dt>{{ $t('pageInventory.table.statusState') }}:</dt>
+                 <dd>{{ dataFormatter(item.statusState) }}</dd>
+-                <!-- Power state -->
+-                <dt>{{ $t('pageInventory.table.power') }}:</dt>
+-                <dd>{{ dataFormatter(item.power) }}</dd>
+-                <!-- Health rollup -->
+-                <dt>{{ $t('pageInventory.table.healthRollup') }}:</dt>
+-                <dd>{{ dataFormatter(item.healthRollup) }}</dd>
+               </dl>
+             </b-col>
+           </b-row>
+@@ -96,22 +90,6 @@
+                 <dd>{{ dataFormatter(item.chassisType) }}</dd>
+               </dl>
+             </b-col>
+-            <b-col class="mt-2" sm="6" xl="6">
+-              <dl>
+-                <!-- Min power -->
+-                <dt>{{ $t('pageInventory.table.minPowerWatts') }}:</dt>
+-                <dd>
+-                  {{ dataFormatter(item.minPowerWatts) }}
+-                  {{ $t('unit.W') }}
+-                </dd>
+-                <!-- Max power -->
+-                <dt>{{ $t('pageInventory.table.maxPowerWatts') }}:</dt>
+-                <dd>
+-                  {{ dataFormatter(item.maxPowerWatts) }}
+-                  {{ $t('unit.W') }}
+-                </dd>
+-              </dl>
+-            </b-col>
+           </b-row>
+         </b-container>
+       </template>
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableSystem.vue b/src/views/HardwareStatus/Inventory/InventoryTableSystem.vue
+old mode 100644
+new mode 100755
+index 8ac1a25..b7604c1
+--- a/src/views/HardwareStatus/Inventory/InventoryTableSystem.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableSystem.vue
+@@ -70,9 +70,6 @@
+                 <!-- Power state -->
+                 <dt>{{ $t('pageInventory.table.power') }}:</dt>
+                 <dd>{{ dataFormatter(item.powerState) }}</dd>
+-                <!-- Health rollup -->
+-                <dt>{{ $t('pageInventory.table.healthRollup') }}:</dt>
+-                <dd>{{ dataFormatter(item.healthRollup) }}</dd>
+               </dl>
+             </b-col>
+           </b-row>
+@@ -98,32 +95,6 @@
+                 </dd>
+               </dl>
+             </b-col>
+-            <b-col sm="6">
+-              <!-- Memory Summary -->
+-              <p class="mt-1 mb-2 h6 float-none m-0">
+-                {{ $t('pageInventory.table.memorySummary') }}
+-              </p>
+-              <dl class="ml-4">
+-                <!-- Total system memory -->
+-                <dt>{{ $t('pageInventory.table.totalSystemMemoryGiB') }}:</dt>
+-                <dd>
+-                  {{ dataFormatter(item.totalSystemMemoryGiB) }}
+-                  {{ $t('unit.GiB') }}
+-                </dd>
+-              </dl>
+-              <!-- Processor Summary -->
+-              <p class="mt-1 mb-2 h6 float-none m-0">
+-                {{ $t('pageInventory.table.processorSummary') }}
+-              </p>
+-              <dl class="ml-4">
+-                <!-- Count -->
+-                <dt>{{ $t('pageInventory.table.count') }}:</dt>
+-                <dd>{{ dataFormatter(item.processorSummaryCount) }}</dd>
+-                <!-- Core Count -->
+-                <dt>{{ $t('pageInventory.table.coreCount') }}:</dt>
+-                <dd>{{ dataFormatter(item.processorSummaryCoreCount) }}</dd>
+-              </dl>
+-            </b-col>
+           </b-row>
+         </b-container>
+       </template>

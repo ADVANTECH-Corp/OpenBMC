@@ -1,0 +1,300 @@
+From 148ddcd73830c1f4cba39ad1dc4be5504537d293 Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Tue, 15 Jul 2025 13:11:45 +0800
+Subject: [PATCH] Removed unecessary items in the Inventory session
+
+---
+ .../Inventory/InventoryTableAssembly.vue      | 11 ----
+ .../Inventory/InventoryTableBmcManager.vue    | 39 -------------
+ .../Inventory/InventoryTableChassis.vue       | 55 +------------------
+ .../Inventory/InventoryTableDimmSlot.vue      | 10 ----
+ .../Inventory/InventoryTablePowerSupplies.vue | 11 ----
+ .../Inventory/InventoryTableProcessors.vue    | 12 ----
+ .../Inventory/InventoryTableSystem.vue        | 15 -----
+ 7 files changed, 1 insertion(+), 152 deletions(-)
+
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableAssembly.vue b/src/views/HardwareStatus/Inventory/InventoryTableAssembly.vue
+index b9f59cc..72aaecc 100644
+--- a/src/views/HardwareStatus/Inventory/InventoryTableAssembly.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableAssembly.vue
+@@ -101,17 +101,6 @@ export default {
+           formatter: this.dataFormatter,
+           sortable: true,
+         },
+-        {
+-          key: 'locationNumber',
+-          label: this.$t('pageInventory.table.locationNumber'),
+-          formatter: this.dataFormatter,
+-          sortable: true,
+-        },
+-        {
+-          key: 'identifyLed',
+-          label: this.$t('pageInventory.table.identifyLed'),
+-          formatter: this.dataFormatter,
+-        },
+       ],
+       expandRowLabel: expandRowLabel,
+     };
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableBmcManager.vue b/src/views/HardwareStatus/Inventory/InventoryTableBmcManager.vue
+index 0f71c90..5c0b99a 100755
+--- a/src/views/HardwareStatus/Inventory/InventoryTableBmcManager.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableBmcManager.vue
+@@ -29,23 +29,6 @@
+         {{ value }}
+       </template>
+ 
+-      <!-- Toggle identify LED -->
+-      <template #cell(identifyLed)="row">
+-        <b-form-checkbox
+-          v-if="hasIdentifyLed(row.item.identifyLed)"
+-          v-model="row.item.identifyLed"
+-          name="switch"
+-          switch
+-          @change="toggleIdentifyLedValue(row.item)"
+-        >
+-          <span v-if="row.item.identifyLed">
+-            {{ $t('global.status.on') }}
+-          </span>
+-          <span v-else> {{ $t('global.status.off') }} </span>
+-        </b-form-checkbox>
+-        <div v-else>--</div>
+-      </template>
+-
+       <template #row-details="{ item }">
+         <b-container fluid>
+           <b-row>
+@@ -54,15 +37,6 @@
+                 <!-- Name -->
+                 <dt>{{ $t('pageInventory.table.name') }}:</dt>
+                 <dd>{{ dataFormatter(item.name) }}</dd>
+-                <!-- Part number -->
+-                <dt>{{ $t('pageInventory.table.partNumber') }}:</dt>
+-                <dd>{{ dataFormatter(item.partNumber) }}</dd>
+-                <!-- Serial number -->
+-                <dt>{{ $t('pageInventory.table.serialNumber') }}:</dt>
+-                <dd>{{ dataFormatter(item.serialNumber) }}</dd>
+-                <!-- Spare part number -->
+-                <dt>{{ $t('pageInventory.table.sparePartNumber') }}:</dt>
+-                <dd>{{ dataFormatter(item.sparePartNumber) }}</dd>
+                 <!-- Model -->
+                 <dt>{{ $t('pageInventory.table.model') }}:</dt>
+                 <dd>{{ dataFormatter(item.model) }}</dd>
+@@ -101,9 +75,6 @@
+           <b-row>
+             <b-col class="mt-2" sm="6" xl="6">
+               <dl>
+-                <!-- Manufacturer -->
+-                <dt>{{ $t('pageInventory.table.manufacturer') }}:</dt>
+-                <dd>{{ dataFormatter(item.manufacturer) }}</dd>
+                 <!-- Description -->
+                 <dt>{{ $t('pageInventory.table.description') }}:</dt>
+                 <dd>{{ dataFormatter(item.description) }}</dd>
+@@ -190,16 +161,6 @@ export default {
+           label: this.$t('pageInventory.table.health'),
+           formatter: this.dataFormatter,
+         },
+-        {
+-          key: 'locationNumber',
+-          label: this.$t('pageInventory.table.locationNumber'),
+-          formatter: this.dataFormatter,
+-        },
+-        {
+-          key: 'identifyLed',
+-          label: this.$t('pageInventory.table.identifyLed'),
+-          formatter: this.dataFormatter,
+-        },
+       ],
+       expandRowLabel: expandRowLabel,
+     };
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableChassis.vue b/src/views/HardwareStatus/Inventory/InventoryTableChassis.vue
+index ac51a33..6a8e220 100755
+--- a/src/views/HardwareStatus/Inventory/InventoryTableChassis.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableChassis.vue
+@@ -23,27 +23,6 @@
+         </b-button>
+       </template>
+ 
+-      <!-- Health -->
+-      <template #cell(health)="{ value }">
+-        <status-icon :status="statusIcon(value)" />
+-        {{ value }}
+-      </template>
+-      <!-- Toggle identify LED -->
+-      <template #cell(identifyLed)="row">
+-        <b-form-checkbox
+-          v-if="hasIdentifyLed(row.item.identifyLed)"
+-          v-model="row.item.identifyLed"
+-          name="switch"
+-          switch
+-          @change="toggleIdentifyLedValue(row.item)"
+-        >
+-          <span v-if="row.item.identifyLed">
+-            {{ $t('global.status.on') }}
+-          </span>
+-          <span v-else> {{ $t('global.status.off') }} </span>
+-        </b-form-checkbox>
+-        <div v-else>--</div>
+-      </template>
+       <template #row-details="{ item }">
+         <b-container fluid>
+           <b-row>
+@@ -101,7 +80,6 @@
+ import PageSection from '@/components/Global/PageSection';
+ import IconChevron from '@carbon/icons-vue/es/chevron--down/20';
+ import BVToastMixin from '@/components/Mixins/BVToastMixin';
+-import StatusIcon from '@/components/Global/StatusIcon';
+ 
+ import TableRowExpandMixin, {
+   expandRowLabel,
+@@ -109,7 +87,7 @@ import TableRowExpandMixin, {
+ import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
+ 
+ export default {
+-  components: { IconChevron, PageSection, StatusIcon },
++  components: { IconChevron, PageSection },
+   mixins: [BVToastMixin, TableRowExpandMixin, DataFormatterMixin],
+   data() {
+     return {
+@@ -125,22 +103,6 @@ export default {
+           label: this.$t('pageInventory.table.id'),
+           formatter: this.dataFormatter,
+         },
+-        {
+-          key: 'health',
+-          label: this.$t('pageInventory.table.health'),
+-          formatter: this.dataFormatter,
+-          tdClass: 'text-nowrap',
+-        },
+-        {
+-          key: 'locationNumber',
+-          label: this.$t('pageInventory.table.locationNumber'),
+-          formatter: this.dataFormatter,
+-        },
+-        {
+-          key: 'identifyLed',
+-          label: this.$t('pageInventory.table.identifyLed'),
+-          formatter: this.dataFormatter,
+-        },
+       ],
+       expandRowLabel: expandRowLabel,
+     };
+@@ -157,20 +119,5 @@ export default {
+       this.isBusy = false;
+     });
+   },
+-  methods: {
+-    toggleIdentifyLedValue(row) {
+-      this.$store
+-        .dispatch('chassis/updateIdentifyLedValue', {
+-          uri: row.uri,
+-          identifyLed: row.identifyLed,
+-        })
+-        .then((message) => this.successToast(message))
+-        .catch(({ message }) => this.errorToast(message));
+-    },
+-    // TO DO: Remove this method when the LocationIndicatorActive is added from backend.
+-    hasIdentifyLed(identifyLed) {
+-      return typeof identifyLed === 'boolean';
+-    },
+-  },
+ };
+ </script>
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableDimmSlot.vue b/src/views/HardwareStatus/Inventory/InventoryTableDimmSlot.vue
+index f3db133..4ea0e3b 100644
+--- a/src/views/HardwareStatus/Inventory/InventoryTableDimmSlot.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableDimmSlot.vue
+@@ -239,16 +239,6 @@ export default {
+           formatter: this.dataFormatter,
+           tdClass: 'text-nowrap',
+         },
+-        {
+-          key: 'locationNumber',
+-          label: this.$t('pageInventory.table.locationNumber'),
+-          formatter: this.dataFormatter,
+-        },
+-        {
+-          key: 'identifyLed',
+-          label: this.$t('pageInventory.table.identifyLed'),
+-          formatter: this.dataFormatter,
+-        },
+       ],
+       searchFilter: searchFilter,
+       searchTotalFilteredRows: 0,
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTablePowerSupplies.vue b/src/views/HardwareStatus/Inventory/InventoryTablePowerSupplies.vue
+index df03fdf..96871b2 100644
+--- a/src/views/HardwareStatus/Inventory/InventoryTablePowerSupplies.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTablePowerSupplies.vue
+@@ -166,17 +166,6 @@ export default {
+           sortable: true,
+           tdClass: 'text-nowrap',
+         },
+-        {
+-          key: 'locationNumber',
+-          label: this.$t('pageInventory.table.locationNumber'),
+-          formatter: this.dataFormatter,
+-          sortable: true,
+-        },
+-        {
+-          key: 'identifyLed',
+-          label: this.$t('pageInventory.table.identifyLed'),
+-          formatter: this.dataFormatter,
+-        },
+       ],
+       searchFilter: searchFilter,
+       searchTotalFilteredRows: 0,
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableProcessors.vue b/src/views/HardwareStatus/Inventory/InventoryTableProcessors.vue
+index 2887fc4..974dee7 100644
+--- a/src/views/HardwareStatus/Inventory/InventoryTableProcessors.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableProcessors.vue
+@@ -212,18 +212,6 @@ export default {
+           sortable: true,
+           tdClass: 'text-nowrap',
+         },
+-        {
+-          key: 'locationNumber',
+-          label: this.$t('pageInventory.table.locationNumber'),
+-          formatter: this.dataFormatter,
+-          sortable: true,
+-        },
+-        {
+-          key: 'identifyLed',
+-          label: this.$t('pageInventory.table.identifyLed'),
+-          formatter: this.dataFormatter,
+-          sortable: false,
+-        },
+       ],
+       searchFilter: searchFilter,
+       searchTotalFilteredRows: 0,
+diff --git a/src/views/HardwareStatus/Inventory/InventoryTableSystem.vue b/src/views/HardwareStatus/Inventory/InventoryTableSystem.vue
+index b7604c1..aa5ed16 100755
+--- a/src/views/HardwareStatus/Inventory/InventoryTableSystem.vue
++++ b/src/views/HardwareStatus/Inventory/InventoryTableSystem.vue
+@@ -83,11 +83,6 @@
+                 <!-- Description -->
+                 <dt>{{ $t('pageInventory.table.description') }}:</dt>
+                 <dd>{{ dataFormatter(item.description) }}</dd>
+-                <!-- Sub Model -->
+-                <dt>{{ $t('pageInventory.table.subModel') }}:</dt>
+-                <dd>
+-                  {{ dataFormatter(item.subModel) }}
+-                </dd>
+                 <!-- System Type -->
+                 <dt>{{ $t('pageInventory.table.systemType') }}:</dt>
+                 <dd>
+@@ -143,16 +138,6 @@ export default {
+           formatter: this.dataFormatter,
+           tdClass: 'text-nowrap',
+         },
+-        {
+-          key: 'locationNumber',
+-          label: this.$t('pageInventory.table.locationNumber'),
+-          formatter: this.dataFormatter,
+-        },
+-        {
+-          key: 'locationIndicatorActive',
+-          label: this.$t('pageInventory.table.identifyLed'),
+-          formatter: this.dataFormatter,
+-        },
+       ],
+       expandRowLabel: expandRowLabel,
+     };

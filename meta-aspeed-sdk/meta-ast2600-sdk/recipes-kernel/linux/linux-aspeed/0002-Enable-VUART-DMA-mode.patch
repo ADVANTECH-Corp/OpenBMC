@@ -1,0 +1,22 @@
+From 13485256b0fd815a95b20d56d1a0045bb3f02972 Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Thu, 10 Jul 2025 15:31:49 +0800
+Subject: [PATCH] Enable VUART DMA mode
+
+---
+ arch/arm/boot/dts/aspeed/aspeed-g6.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/arm/boot/dts/aspeed/aspeed-g6.dtsi b/arch/arm/boot/dts/aspeed/aspeed-g6.dtsi
+index c3546f3cbd57..232775abb649 100644
+--- a/arch/arm/boot/dts/aspeed/aspeed-g6.dtsi
++++ b/arch/arm/boot/dts/aspeed/aspeed-g6.dtsi
+@@ -927,6 +927,8 @@ vuart1: serial@1e787000 {
+ 				interrupts = <GIC_SPI 147 IRQ_TYPE_LEVEL_HIGH>;
+ 				clocks = <&syscon ASPEED_CLK_APB1>;
+ 				virtual;
++				dma-mode;
++				dma-channel = <12>;  // Pick a valid channel
+ 				status = "disabled";
+ 			};
+ 

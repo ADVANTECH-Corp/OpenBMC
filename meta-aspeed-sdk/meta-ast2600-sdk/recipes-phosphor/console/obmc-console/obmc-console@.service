@@ -1,0 +1,13 @@
+[Unit]
+Description=Phosphor Console Muxer listening on device /dev/%I
+ConditionPathExists=/etc/obmc-console/server.%i.conf
+BindsTo=dev-%i.device
+After=dev-%i.device
+
+[Service]
+ExecStart=/usr/bin/env obmc-console-server --config /etc/obmc-console/server.%i.conf %i
+SyslogIdentifier=obmc-console-server
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

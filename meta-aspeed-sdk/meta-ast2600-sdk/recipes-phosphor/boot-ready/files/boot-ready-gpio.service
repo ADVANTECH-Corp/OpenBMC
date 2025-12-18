@@ -1,0 +1,11 @@
+[Unit]
+Description=Set GPIOF6 high to indicate BMC boot ready
+After=multi-user.target
+Requires=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/gpioset gpiochip0 46=1
+
+[Install]
+WantedBy=multi-user.target

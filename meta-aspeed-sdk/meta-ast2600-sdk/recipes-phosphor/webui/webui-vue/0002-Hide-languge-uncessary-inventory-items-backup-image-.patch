@@ -1,0 +1,323 @@
+From 8a9ee41980948dd676fd5b2394e31b44fe50f4e7 Mon Sep 17 00:00:00 2001
+From: Vincent Lai <Vincent.Lai@advantech.com.tw>
+Date: Wed, 11 Jun 2025 10:31:36 +0800
+Subject: [PATCH] Hide languge, uncessary inventory items, backup image,
+ network mac address modification.
+
+---
+ .../HardwareStatus/Inventory/Inventory.vue    | 62 -------------------
+ src/views/Login/Login.vue                     |  4 --
+ .../Operations/Firmware/FirmwareCardsBmc.vue  | 51 +--------------
+ .../Operations/Firmware/FirmwareCardsHost.vue | 30 ---------
+ .../Network/NetworkInterfaceSettings.vue      | 11 ----
+ 5 files changed, 1 insertion(+), 157 deletions(-)
+ mode change 100644 => 100755 src/views/HardwareStatus/Inventory/Inventory.vue
+ mode change 100644 => 100755 src/views/Login/Login.vue
+ mode change 100644 => 100755 src/views/Operations/Firmware/FirmwareCardsBmc.vue
+ mode change 100644 => 100755 src/views/Operations/Firmware/FirmwareCardsHost.vue
+ mode change 100644 => 100755 src/views/Settings/Network/NetworkInterfaceSettings.vue
+
+diff --git a/src/views/HardwareStatus/Inventory/Inventory.vue b/src/views/HardwareStatus/Inventory/Inventory.vue
+old mode 100644
+new mode 100755
+index d05e32e..354afee
+--- a/src/views/HardwareStatus/Inventory/Inventory.vue
++++ b/src/views/HardwareStatus/Inventory/Inventory.vue
+@@ -52,13 +52,8 @@
+ import PageTitle from '@/components/Global/PageTitle';
+ import ServiceIndicator from './InventoryServiceIndicator';
+ import TableSystem from './InventoryTableSystem';
+-import TablePowerSupplies from './InventoryTablePowerSupplies';
+-import TableDimmSlot from './InventoryTableDimmSlot';
+-import TableFans from './InventoryTableFans';
+ import TableBmcManager from './InventoryTableBmcManager';
+ import TableChassis from './InventoryTableChassis';
+-import TableProcessors from './InventoryTableProcessors';
+-import TableAssembly from './InventoryTableAssembly';
+ import LoadingBarMixin from '@/components/Mixins/LoadingBarMixin';
+ import PageSection from '@/components/Global/PageSection';
+ import JumpLink16 from '@carbon/icons-vue/es/jump-link/16';
+@@ -69,14 +64,9 @@ export default {
+   components: {
+     PageTitle,
+     ServiceIndicator,
+-    TableDimmSlot,
+-    TablePowerSupplies,
+     TableSystem,
+-    TableFans,
+     TableBmcManager,
+     TableChassis,
+-    TableProcessors,
+-    TableAssembly,
+     PageSection,
+     JumpLink: JumpLink16,
+   },
+@@ -108,36 +98,6 @@ export default {
+           href: '#chassis',
+           linkText: this.$t('pageInventory.chassis'),
+         },
+-        {
+-          id: 'dimms',
+-          dataRef: 'dimms',
+-          href: '#dimms',
+-          linkText: this.$t('pageInventory.dimmSlot'),
+-        },
+-        {
+-          id: 'fans',
+-          dataRef: 'fans',
+-          href: '#fans',
+-          linkText: this.$t('pageInventory.fans'),
+-        },
+-        {
+-          id: 'powerSupply',
+-          dataRef: 'powerSupply',
+-          href: '#powerSupply',
+-          linkText: this.$t('pageInventory.powerSupplies'),
+-        },
+-        {
+-          id: 'processors',
+-          dataRef: 'processors',
+-          href: '#processors',
+-          linkText: this.$t('pageInventory.processors'),
+-        },
+-        {
+-          id: 'assembly',
+-          dataRef: 'assembly',
+-          href: '#assembly',
+-          linkText: this.$t('pageInventory.assemblies'),
+-        },
+       ],
+     };
+   },
+@@ -155,41 +115,19 @@ export default {
+     const chassisTablePromise = new Promise((resolve) => {
+       this.$root.$on('hardware-status-chassis-complete', () => resolve());
+     });
+-    const dimmSlotTablePromise = new Promise((resolve) => {
+-      this.$root.$on('hardware-status-dimm-slot-complete', () => resolve());
+-    });
+-    const fansTablePromise = new Promise((resolve) => {
+-      this.$root.$on('hardware-status-fans-complete', () => resolve());
+-    });
+-    const powerSuppliesTablePromise = new Promise((resolve) => {
+-      this.$root.$on('hardware-status-power-supplies-complete', () =>
+-        resolve(),
+-      );
+-    });
+-    const processorsTablePromise = new Promise((resolve) => {
+-      this.$root.$on('hardware-status-processors-complete', () => resolve());
+-    });
+     const serviceIndicatorPromise = new Promise((resolve) => {
+       this.$root.$on('hardware-status-service-complete', () => resolve());
+     });
+     const systemTablePromise = new Promise((resolve) => {
+       this.$root.$on('hardware-status-system-complete', () => resolve());
+     });
+-    const assemblyTablePromise = new Promise((resolve) => {
+-      this.$root.$on('hardware-status-assembly-complete', () => resolve());
+-    });
+     // Combine all child component Promises to indicate
+     // when page data load complete
+     Promise.all([
+       bmcManagerTablePromise,
+       chassisTablePromise,
+-      dimmSlotTablePromise,
+-      fansTablePromise,
+-      powerSuppliesTablePromise,
+-      processorsTablePromise,
+       serviceIndicatorPromise,
+       systemTablePromise,
+-      assemblyTablePromise,
+     ]).finally(() => this.endLoader());
+   },
+ };
+diff --git a/src/views/Login/Login.vue b/src/views/Login/Login.vue
+old mode 100644
+new mode 100755
+index db475c5..9ec7d25
+--- a/src/views/Login/Login.vue
++++ b/src/views/Login/Login.vue
+@@ -86,10 +86,6 @@ export default {
+           value: 'en-US',
+           text: 'English',
+         },
+-        {
+-          value: 'ru-RU',
+-          text: 'Русский',
+-        },
+       ],
+     };
+   },
+diff --git a/src/views/Operations/Firmware/FirmwareCardsBmc.vue b/src/views/Operations/Firmware/FirmwareCardsBmc.vue
+old mode 100644
+new mode 100755
+index bfca14c..08239d2
+--- a/src/views/Operations/Firmware/FirmwareCardsBmc.vue
++++ b/src/views/Operations/Firmware/FirmwareCardsBmc.vue
+@@ -14,53 +14,18 @@
+             <dd class="mb-0">{{ runningVersion }}</dd>
+           </dl>
+         </b-card>
+-
+-        <!-- Backup image -->
+-        <b-card>
+-          <template #header>
+-            <p class="font-weight-bold m-0">
+-              {{ $t('pageFirmware.cardTitleBackup') }}
+-            </p>
+-          </template>
+-          <dl>
+-            <dt>{{ $t('pageFirmware.cardBodyVersion') }}</dt>
+-            <dd>
+-              <status-icon v-if="showBackupImageStatus" status="danger" />
+-              <span v-if="showBackupImageStatus" class="sr-only">
+-                {{ backupStatus }}
+-              </span>
+-              {{ backupVersion }}
+-            </dd>
+-          </dl>
+-          <b-btn
+-            v-if="!switchToBackupImageDisabled"
+-            v-b-modal.modal-switch-to-running
+-            data-test-id="firmware-button-switchToRunning"
+-            variant="link"
+-            size="sm"
+-            class="py-0 px-1 mt-2"
+-            :disabled="isPageDisabled || !backup || !isServerOff"
+-          >
+-            <icon-switch class="d-none d-sm-inline-block" />
+-            {{ $t('pageFirmware.cardActionSwitchToRunning') }}
+-          </b-btn>
+-        </b-card>
+       </b-card-group>
+     </page-section>
+-    <modal-switch-to-running :backup="backupVersion" @ok="switchToRunning" />
+   </div>
+ </template>
+ 
+ <script>
+-import IconSwitch from '@carbon/icons-vue/es/arrows--horizontal/20';
+ import PageSection from '@/components/Global/PageSection';
+ import LoadingBarMixin, { loading } from '@/components/Mixins/LoadingBarMixin';
+ import BVToastMixin from '@/components/Mixins/BVToastMixin';
+ 
+-import ModalSwitchToRunning from './FirmwareModalSwitchToRunning';
+-
+ export default {
+-  components: { IconSwitch, ModalSwitchToRunning, PageSection },
++  components: { PageSection },
+   mixins: [BVToastMixin, LoadingBarMixin],
+   props: {
+     isPageDisabled: {
+@@ -94,23 +59,9 @@ export default {
+     running() {
+       return this.$store.getters['firmware/activeBmcFirmware'];
+     },
+-    backup() {
+-      return this.$store.getters['firmware/backupBmcFirmware'];
+-    },
+     runningVersion() {
+       return this.running?.version || '--';
+     },
+-    backupVersion() {
+-      return this.backup?.version || '--';
+-    },
+-    backupStatus() {
+-      return this.backup?.status || null;
+-    },
+-    showBackupImageStatus() {
+-      return (
+-        this.backupStatus === 'Critical' || this.backupStatus === 'Warning'
+-      );
+-    },
+   },
+   methods: {
+     switchToRunning() {
+diff --git a/src/views/Operations/Firmware/FirmwareCardsHost.vue b/src/views/Operations/Firmware/FirmwareCardsHost.vue
+old mode 100644
+new mode 100755
+index b4a8e90..e6be2a9
+--- a/src/views/Operations/Firmware/FirmwareCardsHost.vue
++++ b/src/views/Operations/Firmware/FirmwareCardsHost.vue
+@@ -13,25 +13,6 @@
+           <dd class="mb-0">{{ runningVersion }}</dd>
+         </dl>
+       </b-card>
+-
+-      <!-- Backup image -->
+-      <b-card>
+-        <template #header>
+-          <p class="font-weight-bold m-0">
+-            {{ $t('pageFirmware.cardTitleBackup') }}
+-          </p>
+-        </template>
+-        <dl class="mb-0">
+-          <dt>{{ $t('pageFirmware.cardBodyVersion') }}</dt>
+-          <dd class="mb-0">
+-            <status-icon v-if="showBackupImageStatus" status="danger" />
+-            <span v-if="showBackupImageStatus" class="sr-only">
+-              {{ backupStatus }}
+-            </span>
+-            {{ backupVersion }}
+-          </dd>
+-        </dl>
+-      </b-card>
+     </b-card-group>
+   </page-section>
+ </template>
+@@ -51,17 +32,6 @@ export default {
+     runningVersion() {
+       return this.running?.version || '--';
+     },
+-    backupVersion() {
+-      return this.backup?.version || '--';
+-    },
+-    backupStatus() {
+-      return this.backup?.status || null;
+-    },
+-    showBackupImageStatus() {
+-      return (
+-        this.backupStatus === 'Critical' || this.backupStatus === 'Warning'
+-      );
+-    },
+   },
+ };
+ </script>
+diff --git a/src/views/Settings/Network/NetworkInterfaceSettings.vue b/src/views/Settings/Network/NetworkInterfaceSettings.vue
+old mode 100644
+new mode 100755
+index 023d29b..73e23d2
+--- a/src/views/Settings/Network/NetworkInterfaceSettings.vue
++++ b/src/views/Settings/Network/NetworkInterfaceSettings.vue
+@@ -36,15 +36,6 @@
+           <dl class="text-nowrap">
+             <dt>
+               {{ $t('pageNetwork.macAddress') }}
+-              <b-button
+-                variant="link"
+-                class="p-1"
+-                @click="initMacAddressModal()"
+-              >
+-                <icon-edit
+-                  :title="$t('pageNetwork.modal.editMacAddressTitle')"
+-                />
+-              </b-button>
+             </dt>
+             <dd>
+               {{ dataFormatter(macAddress) }}
+@@ -58,7 +49,6 @@
+ 
+ <script>
+ import BVToastMixin from '@/components/Mixins/BVToastMixin';
+-import IconEdit from '@carbon/icons-vue/es/edit/16';
+ import PageSection from '@/components/Global/PageSection';
+ import DataFormatterMixin from '@/components/Mixins/DataFormatterMixin';
+ import { mapState } from 'vuex';
+@@ -66,7 +56,6 @@ import { mapState } from 'vuex';
+ export default {
+   name: 'Ipv4Table',
+   components: {
+-    IconEdit,
+     PageSection,
+   },
+   mixins: [BVToastMixin, DataFormatterMixin],

@@ -1,0 +1,23 @@
+From 96a069b1198d748e1bd5559abb11e5a45f7653e9 Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Fri, 11 Jul 2025 16:26:43 +0800
+Subject: [PATCH] Hide serial number and Tag in the overview of the Header
+
+---
+ src/components/AppHeader/AppHeader.vue | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/components/AppHeader/AppHeader.vue b/src/components/AppHeader/AppHeader.vue
+index 76c96c0..629809d 100644
+--- a/src/components/AppHeader/AppHeader.vue
++++ b/src/components/AppHeader/AppHeader.vue
+@@ -44,9 +44,7 @@
+           </b-navbar-brand>
+           <div v-if="isNavTagPresent" :key="routerKey" class="pl-2 nav-tags">
+             <span>|</span>
+-            <span class="pl-3 asset-tag">{{ assetTag }}</span>
+             <span class="pl-3">{{ modelType }}</span>
+-            <span class="pl-3">{{ serialNumber }}</span>
+           </div>
+         </b-navbar-nav>
+         <!-- Right aligned nav items -->

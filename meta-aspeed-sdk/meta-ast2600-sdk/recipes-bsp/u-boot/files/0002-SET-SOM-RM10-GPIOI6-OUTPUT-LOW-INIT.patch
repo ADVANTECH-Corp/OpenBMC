@@ -1,0 +1,55 @@
+From cdbbf7b25d3d74ce9e802a7a46ff471022b70049 Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Mon, 16 Jun 2025 14:00:30 +0800
+Subject: [PATCH] SET SOM-RM10 GPIOI6 OUTPUT LOW INIT
+
+---
+ board/aspeed/evb_ast2600/evb_ast2600.c | 28 ++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/board/aspeed/evb_ast2600/evb_ast2600.c b/board/aspeed/evb_ast2600/evb_ast2600.c
+index aebf13abc5..663c870301 100644
+--- a/board/aspeed/evb_ast2600/evb_ast2600.c
++++ b/board/aspeed/evb_ast2600/evb_ast2600.c
+@@ -49,6 +49,31 @@
+ 
+ #define Dedicated_VGA_BIOS_ROM (1 << 5)
+ 
++#define SOM_RM10_GPIO_INI  1
++
++#if SOM_RM10_GPIO_INI
++#define AST_GPIO_BASE		0x1e780000
++/* GPIOI-L GROUP */
++#define GPIO_070			0x070 /* GPIO I/J/K/L Value */
++#define GPIO_074			0x074 /* GPIO I/J/K/L Direction */
++
++/* BIT0 - BIT7 GRUOP */
++#define GPIO_BIT_0			BIT(0)
++#define GPIO_BIT_1			BIT(1)
++#define GPIO_BIT_2          BIT(2)
++#define GPIO_BIT_3          BIT(3)
++#define GPIO_BIT_4			BIT(4)
++#define GPIO_BIT_5			BIT(5)
++#define GPIO_BIT_6			BIT(6)
++#define GPIO_BIT_7			BIT(7)
++
++static void set_advantech_pin_state(void)
++{   // SET SOM-RM10 GPIOI6 OUTPUT LOW INIT 
++	writel((readl(AST_GPIO_BASE | GPIO_074) & ~(GPIO_BIT_6)), AST_GPIO_BASE | GPIO_070);
++	writel(readl(AST_GPIO_BASE | GPIO_074) | (GPIO_BIT_6), AST_GPIO_BASE | GPIO_074);
++}
++#endif
++
+ static void __maybe_unused port80h_snoop_init(void)
+ {
+ 	u32 value;
+@@ -146,6 +171,9 @@ int board_early_init_f(void)
+ #if 0
+ 	port80h_snoop_init();
+ 	sgpio_init();
++#endif
++#if SOM_RM10_GPIO_INI
++    set_advantech_pin_state();
+ #endif
+ 	espi_init();
+ 	

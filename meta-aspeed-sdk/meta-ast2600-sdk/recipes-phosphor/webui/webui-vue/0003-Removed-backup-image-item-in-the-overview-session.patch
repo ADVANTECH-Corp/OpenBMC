@@ -1,0 +1,47 @@
+From 8a9bd8f67a8a549ae819339d399f88e11703cebb Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Thu, 12 Jun 2025 15:28:46 +0800
+Subject: [PATCH] Removed backup image item in the overview session
+
+---
+ src/views/Overview/OverviewFirmware.vue | 17 -----------------
+ 1 file changed, 17 deletions(-)
+
+diff --git a/src/views/Overview/OverviewFirmware.vue b/src/views/Overview/OverviewFirmware.vue
+index c2c7f4a..a4c5bb0 100644
+--- a/src/views/Overview/OverviewFirmware.vue
++++ b/src/views/Overview/OverviewFirmware.vue
+@@ -8,14 +8,6 @@
+         <dl>
+           <dt>{{ $t('pageOverview.runningVersion') }}</dt>
+           <dd>{{ dataFormatter(runningVersion) }}</dd>
+-          <dt>{{ $t('pageOverview.backupVersion') }}</dt>
+-          <dd>{{ dataFormatter(backupVersion) }}</dd>
+-        </dl>
+-      </b-col>
+-      <b-col sm="6">
+-        <dl>
+-          <dt>{{ $t('pageOverview.firmwareVersion') }}</dt>
+-          <dd>{{ dataFormatter(firmwareVersion) }}</dd>
+         </dl>
+       </b-col>
+     </b-row>
+@@ -36,18 +28,9 @@ export default {
+   computed: {
+     ...mapState({
+       server: (state) => state.system.systems[0],
+-      backupBmcFirmware() {
+-        return this.$store.getters['firmware/backupBmcFirmware'];
+-      },
+-      backupVersion() {
+-        return this.backupBmcFirmware?.version;
+-      },
+       activeBmcFirmware() {
+         return this.$store.getters[`firmware/activeBmcFirmware`];
+       },
+-      firmwareVersion() {
+-        return this.server?.firmwareVersion;
+-      },
+       runningVersion() {
+         return this.activeBmcFirmware?.version;
+       },

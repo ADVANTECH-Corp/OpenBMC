@@ -1,0 +1,268 @@
+From ec2fab4e53045e185aa9653635376b2624b8d4e4 Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Tue, 15 Jul 2025 08:57:53 +0800
+Subject: [PATCH] Added the BOOT operation solution in the Webui
+
+---
+ src/locales/en-US.json                        |  1 +
+ src/locales/ru-RU.json                        |  1 +
+ .../modules/Operations/BootSettingsStore.js   | 54 +++++++++++++++++--
+ .../ServerPowerOperations/BootSettings.vue    | 51 ++++++++++++++----
+ 4 files changed, 95 insertions(+), 12 deletions(-)
+
+diff --git a/src/locales/en-US.json b/src/locales/en-US.json
+index 8ba7ac9..a10264e 100644
+--- a/src/locales/en-US.json
++++ b/src/locales/en-US.json
+@@ -885,6 +885,7 @@
+         "shutdownServer": "Shutdown server",
+         "bootSettings": {
+             "bootSettingsOverride": "Boot settings override",
++            "bootOptions": "Boot Options",
+             "enableOneTimeBoot": "Enable one time boot",
+             "tpmRequiredPolicy": "TPM required policy",
+             "tpmRequiredPolicyHelper": "Enable to ensure the system only boots when the TPM is functional."
+diff --git a/src/locales/ru-RU.json b/src/locales/ru-RU.json
+index dcf7c59..050e883 100644
+--- a/src/locales/ru-RU.json
++++ b/src/locales/ru-RU.json
+@@ -883,6 +883,7 @@
+         "shutdownServer": "Выключить сервер",
+         "bootSettings": {
+             "bootSettingsOverride": "Переопределение параметров загрузки сервера",
++            "bootOptions": "Параметры загрузкі",
+             "enableOneTimeBoot": "Однократное переопределение",
+             "tpmRequiredPolicy": "Наличие и исправность TPM",
+             "tpmRequiredPolicyHelper": "При включении этой опции сервер загрузится только при наличии и исправной работе TPM."
+diff --git a/src/store/modules/Operations/BootSettingsStore.js b/src/store/modules/Operations/BootSettingsStore.js
+index 928a022..3558285 100644
+--- a/src/store/modules/Operations/BootSettingsStore.js
++++ b/src/store/modules/Operations/BootSettingsStore.js
+@@ -8,12 +8,14 @@ const BootSettingsStore = {
+     bootSource: null,
+     overrideEnabled: null,
+     tpmEnabled: null,
++    bootOptions: [],
+   },
+   getters: {
+     bootSourceOptions: (state) => state.bootSourceOptions,
+     bootSource: (state) => state.bootSource,
+     overrideEnabled: (state) => state.overrideEnabled,
+     tpmEnabled: (state) => state.tpmEnabled,
++    bootOptions: (state) => state.bootOptions,
+   },
+   mutations: {
+     setBootSourceOptions: (state, bootSourceOptions) =>
+@@ -28,6 +30,7 @@ const BootSettingsStore = {
+       }
+     },
+     setTpmPolicy: (state, tpmEnabled) => (state.tpmEnabled = tpmEnabled),
++    setBootOptions: (state, bootOptions) => (state.bootOptions = bootOptions),
+   },
+   actions: {
+     async getBootSettings({ commit }) {
+@@ -40,10 +43,44 @@ const BootSettingsStore = {
+           );
+           commit('setOverrideEnabled', Boot.BootSourceOverrideEnabled);
+           commit('setBootSource', Boot.BootSourceOverrideTarget);
++          if (Boot.BootOptions) {
++            return api.get(Boot.BootOptions?.['@odata.id']);
++          } else {
++            return null;
++          }
++        })
++        .then(async (response) => {
++          const promises =
++            response?.data?.Members?.map((bootOption) => {
++              return api.get(bootOption['@odata.id']).catch((error) => {
++                console.log(error);
++                return error;
++              });
++            }) || [];
++          await api.all(promises).then((responses) => {
++            const bootOptions = [];
++            responses?.forEach((response) => {
++              if (response?.data) {
++                bootOptions.push({
++                  bootOptionEnabled: response.data.BootOptionEnabled,
++                  bootOptionReference: response.data.BootOptionReference,
++                  description: response.data.Description,
++                  displayName: response.data.DisplayName,
++                  id: response.data.Id,
++                  name: response.data.Name,
++                  uefiDevicePath: response.data.UefiDevicePath,
++                });
++              }
++            });
++            commit('setBootOptions', bootOptions);
++          });
+         })
+         .catch((error) => console.log(error));
+     },
+-    saveBootSettings({ commit, dispatch }, { bootSource, overrideEnabled }) {
++    async saveBootSettings(
++      { commit, dispatch, getters },
++      { bootSource, overrideEnabled, bootOption },
++    ) {
+       const data = { Boot: {} };
+       data.Boot.BootSourceOverrideTarget = bootSource;
+ 
+@@ -54,6 +91,13 @@ const BootSettingsStore = {
+       } else {
+         data.Boot.BootSourceOverrideEnabled = 'Continuous';
+       }
++      if (bootSource === 'UefiTarget') {
++        data.Boot.UefiTargetBootSourceOverride = getters['bootOptions'].find(
++          (obj) => obj.id === bootOption,
++        ).uefiDevicePath;
++      } else if (bootSource === 'UefiBootNext') {
++        data.Boot.BootNext = bootOption;
++      }
+       // <!-- WEB_CONFIG_DEPEND_FEATURE_BEGIN:CONFIG_FORCE_BOOT_UEFI_MODE -->
+       data.Boot.BootSourceOverrideMode = 'UEFI';
+       // <!-- WEB_CONFIG_DEPEND_FEATURE_END:CONFIG_FORCE_BOOT_UEFI_MODE -->
+@@ -107,13 +151,17 @@ const BootSettingsStore = {
+     },
+     async saveSettings(
+       { dispatch },
+-      { bootSource, overrideEnabled, tpmEnabled },
++      { bootSource, overrideEnabled, tpmEnabled, bootOption },
+     ) {
+       const promises = [];
+ 
+       if (bootSource !== null || overrideEnabled !== null) {
+         promises.push(
+-          dispatch('saveBootSettings', { bootSource, overrideEnabled }),
++          dispatch('saveBootSettings', {
++            bootSource,
++            overrideEnabled,
++            bootOption,
++          }),
+         );
+       }
+       if (tpmEnabled !== null) {
+diff --git a/src/views/Operations/ServerPowerOperations/BootSettings.vue b/src/views/Operations/ServerPowerOperations/BootSettings.vue
+index c74fd01..4795bbd 100644
+--- a/src/views/Operations/ServerPowerOperations/BootSettings.vue
++++ b/src/views/Operations/ServerPowerOperations/BootSettings.vue
+@@ -5,22 +5,36 @@
+         :label="
+           $t('pageServerPowerOperations.bootSettings.bootSettingsOverride')
+         "
+-        label-for="boot-option"
++        label-for="boot-source-option"
+         class="mb-3"
+       >
+         <b-form-select
+-          id="boot-option"
+-          v-model="form.bootOption"
++          id="boot-source-option"
++          v-model="form.bootSourceOption"
+           :disabled="bootSourceOptions.length === 0"
+           :options="bootSourceOptions"
+           @change="onChangeSelect"
+         >
+         </b-form-select>
+       </b-form-group>
++      <b-form-group
++        :label="$t('pageServerPowerOperations.bootSettings.bootOptions')"
++        label-for="boot-option"
++        class="mb-3"
++      >
++        <b-form-select
++          v-if="bootOptionNeeded"
++          id="boot-option"
++          v-model="form.bootOption"
++          :disabled="bootOptions.length === 0"
++          :options="formattedBootOptions"
++        >
++        </b-form-select>
++      </b-form-group>
+       <b-form-checkbox
+         v-model="form.oneTimeBoot"
+         class="mb-4"
+-        :disabled="form.bootOption === 'None'"
++        :disabled="form.bootSourceOption === 'None'"
+         @change="$v.form.oneTimeBoot.$touch()"
+       >
+         {{ $t('pageServerPowerOperations.bootSettings.enableOneTimeBoot') }}
+@@ -60,7 +74,8 @@ export default {
+   data() {
+     return {
+       form: {
+-        bootOption: this.$store.getters['serverBootSettings/bootSource'],
++        bootOption: this.$store.getters['serverBootSettings/bootOptions'],
++        bootSourceOption: this.$store.getters['serverBootSettings/bootSource'],
+         oneTimeBoot: this.$store.getters['serverBootSettings/overrideEnabled'],
+         tpmPolicyOn: this.$store.getters['serverBootSettings/tpmEnabled'],
+       },
+@@ -70,13 +85,26 @@ export default {
+     ...mapState('serverBootSettings', [
+       'bootSourceOptions',
+       'bootSource',
++      'bootOptions',
+       'overrideEnabled',
+       'tpmEnabled',
+     ]),
++    bootOptionNeeded() {
++      return (
++        this.form.bootSourceOption === 'UefiTarget' ||
++        this.form.bootSourceOption === 'UefiBootNext'
++      );
++    },
++    formattedBootOptions() {
++      return this.bootOptions.map((option) => ({
++        value: option.id,
++        text: `${option.id} - ${option.displayName}`,
++      }));
++    },
+   },
+   watch: {
+     bootSource: function (value) {
+-      this.form.bootOption = value;
++      this.form.bootSourceOption = value;
+     },
+     overrideEnabled: function (value) {
+       this.form.oneTimeBoot = value;
+@@ -84,12 +112,16 @@ export default {
+     tpmEnabled: function (value) {
+       this.form.tpmPolicyOn = value;
+     },
++    bootOption: function (value) {
++      this.form.bootOption = value;
++    },
+   },
+   validations: {
+     // Empty validations to leverage vuelidate form states
+     // to check for changed values
+     form: {
+       bootOption: {},
++      bootSourceOption: {},
+       oneTimeBoot: {},
+       tpmPolicyOn: {},
+     },
+@@ -106,12 +138,13 @@ export default {
+       this.startLoader();
+       const tpmPolicyChanged = this.$v.form.tpmPolicyOn.$dirty;
+       let settings;
+-      let bootSource = this.form.bootOption;
++      let bootOption = this.form.bootOption;
+       let overrideEnabled = this.form.oneTimeBoot;
+       let tpmEnabled = null;
++      let bootSource = this.form.bootSourceOption;
+ 
+       if (tpmPolicyChanged) tpmEnabled = this.form.tpmPolicyOn;
+-      settings = { bootSource, overrideEnabled, tpmEnabled };
++      settings = { bootSource, overrideEnabled, tpmEnabled, bootOption };
+ 
+       this.$store
+         .dispatch('serverBootSettings/saveSettings', settings)
+@@ -123,7 +156,7 @@ export default {
+         });
+     },
+     onChangeSelect(selectedOption) {
+-      this.$v.form.bootOption.$touch();
++      this.$v.form.bootSourceOption.$touch();
+       // Disable one time boot if selected boot option is 'None'
+       if (selectedOption === 'None') this.form.oneTimeBoot = false;
+     },

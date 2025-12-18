@@ -1,0 +1,28 @@
+From 7faa9893a6fe8bc5adef596490898563793f19c8 Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Wed, 9 Jul 2025 12:56:34 +0800
+Subject: [PATCH] Removied the Language item in the login secssion
+
+---
+ src/views/Login/Login.vue | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/src/views/Login/Login.vue b/src/views/Login/Login.vue
+index 9ec7d25..703976b 100755
+--- a/src/views/Login/Login.vue
++++ b/src/views/Login/Login.vue
+@@ -5,14 +5,6 @@
+         {{ $t('pageLogin.alert.message') }}
+       </p>
+     </alert>
+-    <b-form-group label-for="language" :label="$t('pageLogin.language')">
+-      <b-form-select
+-        id="language"
+-        v-model="$i18n.locale"
+-        :options="languages"
+-        data-test-id="login-select-language"
+-      ></b-form-select>
+-    </b-form-group>
+     <b-form-group label-for="username" :label="$t('pageLogin.username')">
+       <b-form-input
+         id="username"

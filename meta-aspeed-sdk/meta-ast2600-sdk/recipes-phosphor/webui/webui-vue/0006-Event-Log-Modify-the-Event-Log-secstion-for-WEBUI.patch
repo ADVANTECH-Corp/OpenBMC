@@ -1,0 +1,132 @@
+From fc00fa2f5016305708daea1d617f260d4a77afc7 Mon Sep 17 00:00:00 2001
+From: Jiun Wang <jiun.wang@advantech.com.tw>
+Date: Tue, 1 Jul 2025 10:01:23 +0800
+Subject: [PATCH] [Event Log] Modify the Event Log secstion for WEBUI
+
+---
+ src/views/Logs/EventLogs/EventLogs.vue | 77 --------------------------
+ 1 file changed, 77 deletions(-)
+
+diff --git a/src/views/Logs/EventLogs/EventLogs.vue b/src/views/Logs/EventLogs/EventLogs.vue
+index 0e7c494..573855d 100644
+--- a/src/views/Logs/EventLogs/EventLogs.vue
++++ b/src/views/Logs/EventLogs/EventLogs.vue
+@@ -91,25 +91,6 @@
+           @row-selected="onRowSelected($event, filteredLogs.length)"
+         >
+           <!-- Checkbox column -->
+-          <template #head(checkbox)>
+-            <b-form-checkbox
+-              v-model="tableHeaderCheckboxModel"
+-              data-test-id="eventLogs-checkbox-selectAll"
+-              :indeterminate="tableHeaderCheckboxIndeterminate"
+-              @change="onChangeHeaderCheckbox($refs.table)"
+-            >
+-              <span class="sr-only">{{ $t('global.table.selectAll') }}</span>
+-            </b-form-checkbox>
+-          </template>
+-          <template #cell(checkbox)="row">
+-            <b-form-checkbox
+-              v-model="row.rowSelected"
+-              :data-test-id="`eventLogs-checkbox-selectRow-${row.index}`"
+-              @change="toggleSelectRow($refs.table, row.index)"
+-            >
+-              <span class="sr-only">{{ $t('global.table.selectItem') }}</span>
+-            </b-form-checkbox>
+-          </template>
+ 
+           <!-- Expand chevron icon -->
+           <template #cell(expandRow)="row">
+@@ -174,24 +155,6 @@
+             <p class="mb-0">{{ value | formatTime }}</p>
+           </template>
+ 
+-          <!-- Status column -->
+-          <template #cell(status)="row">
+-            <b-form-checkbox
+-              v-model="row.item.status"
+-              name="switch"
+-              switch
+-              @change="changelogStatus(row.item)"
+-            >
+-              <span v-if="row.item.status">
+-                {{ $t('pageEventLogs.resolved') }}
+-              </span>
+-              <span v-else> {{ $t('pageEventLogs.unresolved') }} </span>
+-            </b-form-checkbox>
+-          </template>
+-          <template #cell(filterByStatus)="{ value }">
+-            {{ value }}
+-          </template>
+-
+           <!-- Actions column -->
+           <template #cell(actions)="row">
+             <table-row-action
+@@ -201,7 +164,6 @@
+               :title="action.title"
+               :row-data="row.item"
+               :export-name="exportFileNameByDate('export')"
+-              :data-test-id="`eventLogs-button-deleteRow-${row.index}`"
+               @click-table-action="onTableRowAction($event, row.item)"
+             >
+               <template #icon>
+@@ -321,15 +283,6 @@ export default {
+     return {
+       isBusy: true,
+       fields: [
+-        {
+-          key: 'expandRow',
+-          label: '',
+-          tdClass: 'table-row-expand',
+-        },
+-        {
+-          key: 'checkbox',
+-          sortable: false,
+-        },
+         {
+           key: 'id',
+           label: this.$t('pageEventLogs.table.id'),
+@@ -438,10 +391,6 @@ export default {
+                   value: 'export',
+                   title: this.$t('global.action.export'),
+                 },
+-                {
+-                  value: 'delete',
+-                  title: this.$t('global.action.delete'),
+-                },
+               ],
+         };
+       });
+@@ -608,32 +557,6 @@ export default {
+       }
+       return fileName + date;
+     },
+-    resolveLogs() {
+-      this.$store
+-        .dispatch('eventLog/resolveEventLogs', this.selectedRows)
+-        .then((messages) => {
+-          messages.forEach(({ type, message }) => {
+-            if (type === 'success') {
+-              this.successToast(message);
+-            } else if (type === 'error') {
+-              this.errorToast(message);
+-            }
+-          });
+-        });
+-    },
+-    unresolveLogs() {
+-      this.$store
+-        .dispatch('eventLog/unresolveEventLogs', this.selectedRows)
+-        .then((messages) => {
+-          messages.forEach(({ type, message }) => {
+-            if (type === 'success') {
+-              this.successToast(message);
+-            } else if (type === 'error') {
+-              this.errorToast(message);
+-            }
+-          });
+-        });
+-    },
+   },
+ };
+ </script>

@@ -1,0 +1,34 @@
+From dcdff2b1fc3aff80126c55134ac1e4c63cd32774 Mon Sep 17 00:00:00 2001
+From: Vincent Lai <Vincent.Lai@advantech.com.tw>
+Date: Wed, 2 Jul 2025 14:16:02 +0800
+Subject: [PATCH] Hide NCSI Link status for now, keep tracking for real HW link
+ status.
+
+---
+ src/views/Settings/Network/NetworkInterfaceSettings.vue | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/views/Settings/Network/NetworkInterfaceSettings.vue b/src/views/Settings/Network/NetworkInterfaceSettings.vue
+index 73e23d2..124b20b 100755
+--- a/src/views/Settings/Network/NetworkInterfaceSettings.vue
++++ b/src/views/Settings/Network/NetworkInterfaceSettings.vue
+@@ -2,7 +2,8 @@
+   <div>
+     <page-section>
+       <b-row>
+-        <b-col md="3">
++        <!-- Only show linkStatus if not eth1 -->
++        <b-col md="3" v-if="!isEth1">
+           <dl>
+             <dt>{{ $t('pageNetwork.linkStatus') }}</dt>
+             <dd>
+@@ -76,6 +77,9 @@ export default {
+   },
+   computed: {
+     ...mapState('network', ['ethernetData']),
++    isEth1() {
++      return this.ethernetData[this.tabIndex]?.Id === 'eth1';
++    },
+   },
+   watch: {
+     // Watch for change in tab index
