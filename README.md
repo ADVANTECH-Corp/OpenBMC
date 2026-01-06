@@ -41,7 +41,7 @@ cd SOM-RM10
 ### 3) Target your hardware & Build
 
 ```sh
-git checkout som-rm10/aspeedSDK_v09.06
+git checkout som-rm10/aspeedSDK_v0906
 . setup ast2600-default
 bitbake obmc-phosphor-image
 ```
